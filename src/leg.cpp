@@ -1,56 +1,130 @@
-#include "leg.h"
+#include "Leg.h"
 #include <cmath>
+#include "Configuration.h"
+#include "Utils.h"
+#include "Vec2.h"
 
-Leg::Leg(Point coxaPosition, double femurLength, double tibiaLength, double baseAngle, Servo *coxaServo, Servo *femurServo, Servo *tibiaServo)
+Leg::Leg(double baseAngle, Servo *coxaServo, Servo *femurServo, Servo *tibiaServo)
 {
-    this->coxaPosition = coxaPosition;
-    this->femurLength = femurLength;
-    this->tibiaLength = tibiaLength;
     this->baseAngle = baseAngle;
+
+    Vec3 coxaPosition = Vec3(cos(getBaseAngleInRadians()) * COXA_DISTANCE_FROM_CENTER, sin(getBaseAngleInRadians()) * COXA_DISTANCE_FROM_CENTER, 0);
+    this->matrix = this->matrix.translate(coxaPosition);
+
     this->coxaServo = coxaServo;
     this->femurServo = femurServo;
     this->tibiaServo = tibiaServo;
 }
 
-double Leg::getCoxaAngle(Point globalPos)
+void Leg::setRoot(Mat4 *root)
 {
-    Point pos = globalPos - this->coxaPosition;
-
-    double targetAngle = atan2(pos.getY(), pos.getX());
-
-    return targetAngle - baseAngle;
+    this->root = root;
 }
 
-double Leg::getFemurAngle(double targetDist)
+double Leg::getBaseAngle()
 {
-    double a = this->femurLength;
-    double b = targetDist;
-    double c = this->tibiaLength;
-
-    return acos((a * a + b * b - c * c) / 2 * a * b);
+    return baseAngle;
 }
 
-double Leg::getTibiaAngle(double targetDist)
+double Leg::getBaseAngleInRadians()
 {
-    double a = this->femurLength;
-    double b = targetDist;
-    double c = this->tibiaLength;
-
-    return acos((a * a + c * c - b * b) / 2 * a * c);
+    return toRadians(baseAngle);
 }
 
-void Leg::update() {
+double Leg::getCoxaAngle(Vec3 feetPosition)
+{
+    double radians = atan2(feetPosition.y, fabs(feetPosition.x));
 
+    double angle = toDegrees(radians);
+
+    if (fabs(baseAngle) > 90)
+    {
+        angle -= (copysignf(180, baseAngle) - baseAngle);
+    } else {
+        angle -= baseAngle;
+    }
+
+    return -angle;
 }
 
-void Leg::moveFeet(Point globalPos)
+double Leg::getFemurAngle(Vec3 feetPosition)
 {
-    double targetDist = this->coxaPosition.getDistance(globalPos);
-    double coxaAngle = getCoxaAngle(globalPos);
-    double femurAngle = getFemurAngle(targetDist);
-    double tibiaAngle = getTibiaAngle(targetDist);
+    double angleOffset = atan2(feetPosition.z, fabs(Vec2(feetPosition.x, feetPosition.y).magnitude()));
+
+    double a = FEMUR_LENGTH;
+    double b = TIBIA_LENGTH;
+    double c = feetPosition.magnitude();
+
+    double radians = -acos((a * a + c * c - b * b) / (2 * a * c));
+    radians -= angleOffset;
+
+    return toDegrees(radians);
+}
+
+double Leg::getTibiaAngle(Vec3 feetPosition)
+{
+    double a = FEMUR_LENGTH;
+    double b = TIBIA_LENGTH;
+    double c = feetPosition.magnitude();
+
+    double radians = -(M_PI_2 - acos((a * a + b * b - c * c) / (2 * a * b)));
+
+    return toDegrees(radians);
+}
+
+double Leg::checkAngleOrientation(double angle)
+{
+    if (fabs(baseAngle) > 90)
+    {
+        angle = -angle;
+    }
+
+    return angle;
+}
+
+void Leg::setFeetPosition(Vec3 globalFeetPosition)
+{
+    Mat4 inverseMatrix = root->multiply(matrix).inverse();
+    Vec3 localFeetPosition = inverseMatrix.multiply(Vec4(globalFeetPosition, 1));
+
+    double coxaAngle = getCoxaAngle(localFeetPosition);
+
+    double globalCoxaRadians = toRadians(baseAngle + coxaAngle);
+    Vec3 femurOffset = Vec3(cos(globalCoxaRadians) * FEMUR_TO_COXA_DISTANCE, sin(globalCoxaRadians) * FEMUR_TO_COXA_DISTANCE, 0);
+    Vec3 offsetFeetPosition = localFeetPosition - femurOffset;
+    double femurAngle = getFemurAngle(offsetFeetPosition);
+
+    double tibiaAngle = getTibiaAngle(offsetFeetPosition);
+
+    coxaAngle = checkAngleOrientation(coxaAngle);
+    femurAngle = checkAngleOrientation(femurAngle);
+    tibiaAngle = checkAngleOrientation(tibiaAngle);
 
     coxaServo->setAngle(coxaAngle);
     femurServo->setAngle(femurAngle);
     tibiaServo->setAngle(tibiaAngle);
+
+    currentFeetPosition = globalFeetPosition;
+
+    if (DEBUG_MODE)
+    {
+        Serial.print("BaseAngle:");
+        Serial.println(baseAngle);
+        Serial.print("feetPosition:");
+        Serial.println(localFeetPosition.toString().c_str());
+        Serial.print("offsetFeetPosition:");
+        Serial.println(offsetFeetPosition.toString().c_str());
+        Serial.print("coxaAngle:");
+        Serial.print(coxaAngle);
+        Serial.print(", femurAngle:");
+        Serial.print(femurAngle);
+        Serial.print(", tibiaAngle:");
+        Serial.println(tibiaAngle);
+        Serial.println("---------------------------");
+    }
+}
+
+void Leg::update()
+{
+    setFeetPosition(currentFeetPosition);
 }

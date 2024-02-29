@@ -22,11 +22,11 @@ private:
     int pinNo;
     int minPulse;
     int maxPulse;
-    double getPulse(double angle);
+    double getPulse(double radians);
 
 public:
     Servo(Adafruit_PWMServoDriver *servoDriver, int pinNo, int minPulse, int maxPulse);
-    void setAngle(double angle);
+    void setAngle(double radians);
 };
 
 #endif

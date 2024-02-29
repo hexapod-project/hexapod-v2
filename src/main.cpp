@@ -1,22 +1,58 @@
 #include <Arduino.h>
 #include <BluetoothSerial.h>
-#include "hexapod.h"
+#include "Hexapod.h"
+#include "ServoCalibrator.h"
+#include "ServoTester.h"
+#include "Configuration.h"
 
 BluetoothSerial bluetooth;
 int bluetoothMessage;
-Hexapod hexapod = Hexapod();
+Hexapod *hexapod = new Hexapod();
+
+ServoCalibrator servoCalibrator = ServoCalibrator();
+ServoTester servoTester = ServoTester();
 
 void setup()
 {
+  Serial.begin(115200);
+  
   bluetooth.begin("Hexapod");
+
+  switch (MODE)
+  {
+  case 1:
+    servoCalibrator.setup();
+    break;
+
+  case 2:
+    servoTester.setup();
+    break;
+
+  default:
+    hexapod->init();
+    break;
+  }
 }
 
 void loop()
 {
-  if (bluetooth.available())
+  switch (MODE)
   {
-    bluetoothMessage = bluetooth.read();
-  }
+  case 1:
+    servoCalibrator.loop();
+    break;
 
-  hexapod.update();
+  case 2:
+    servoTester.loop();
+    break;
+
+  default:
+    if (bluetooth.available())
+    {
+      bluetoothMessage = bluetooth.read();
+    }
+
+    hexapod->update();
+    break;
+  }
 }

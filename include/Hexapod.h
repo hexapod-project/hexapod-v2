@@ -1,30 +1,32 @@
 #ifndef Hexapod_H
 #define Hexapod_H
 
-#include "leg.h"
+#include "Leg.h"
 #include <map>
+#include "Mat4.h"
 
 #define LEGS_COUNT 6
 
-enum LEG
-{
-    RIGHT_FRONT,
-    RIGHT_MID,
-    RIGHT_BACK,
-    LEFT_FRONT,
-    LEFT_MID,
-    LEFT_BACK
+enum HexapodState {
+    IDLE,
+    WALK
 };
 
 class Hexapod
 {
 private:
-    double roll;
-    double pitch;
-    Leg *legs[];
+    Mat4 matrix;
+    Mat4 originalMatrix;
+    Leg *legs[LEGS_COUNT];
+
+    void resetMatrix();
+    void rest();
+    void stand();
+    void updateLegs();
 
 public:
     Hexapod();
+    void init();
     void update();
     void walk(double walkDirection);
     void rotate(double angle);

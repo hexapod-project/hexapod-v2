@@ -1,4 +1,6 @@
-#include "servo.h"
+#include "Servo.h"
+#include "Configuration.h"
+#include <algorithm>
 
 Servo::Servo(Adafruit_PWMServoDriver *servoDriver, int pinNo, int minPulse, int maxPulse)
 {
@@ -10,10 +12,11 @@ Servo::Servo(Adafruit_PWMServoDriver *servoDriver, int pinNo, int minPulse, int 
 
 double Servo::getPulse(double angle)
 {
-    return map(angle, this->minPulse, this->maxPulse, -45.0, 45.0);
+    angle = std::clamp(angle, (double)SERVO_ANGLES_MIN, (double)SERVO_ANGLES_MAX);
+    return map(angle, SERVO_ANGLES_MIN, SERVO_ANGLES_MAX, this->minPulse, this->maxPulse);
 }
 
 void Servo::setAngle(double angle)
-{
-    servoDriver->writeMicroseconds(this->pinNo, getPulse(angle));
+{    
+    servoDriver->writeMicroseconds(pinNo, getPulse(angle));
 }
