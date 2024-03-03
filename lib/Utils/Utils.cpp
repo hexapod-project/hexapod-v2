@@ -17,8 +17,34 @@ double toRadians(double degrees)
     return degrees * M_PI / 180;
 }
 
-double getDeltaTime() {
-    double cpuFreq = getCpuFrequencyMhz();
+double toPositiveDeg(double deg)
+{
+    if(deg < 0)
+        deg = 360 + deg;
 
-    return 1/cpuFreq;
+    return deg;
+}
+
+double toPositiveRad(double rad)
+{
+    if(rad < 0)
+        rad = M_TWOPI + rad;
+
+    return rad;
+}
+
+double clampTo360Deg(double deg)
+{
+    if(fabs(deg) > 360)
+        deg = copysign(fmod(fabs(deg), 360), deg);
+
+    return deg;
+}
+
+double clampTo360Rad(double rad)
+{
+    if(fabs(rad) > 2 * M_PI)
+        rad = copysign(fmod(fabs(rad), 2 * M_PI), rad);
+
+    return rad;
 }

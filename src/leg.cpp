@@ -40,7 +40,9 @@ double Leg::getCoxaAngle(Vec3 feetPosition)
     if (fabs(baseAngle) > 90)
     {
         angle -= (copysignf(180, baseAngle) - baseAngle);
-    } else {
+    }
+    else
+    {
         angle -= baseAngle;
     }
 
@@ -106,7 +108,7 @@ void Leg::setFeetPosition(Vec3 globalFeetPosition)
 
     currentFeetPosition = globalFeetPosition;
 
-    if (DEBUG_MODE)
+    if (DEBUG_MODE_LEGS)
     {
         Serial.print("BaseAngle:");
         Serial.println(baseAngle);
@@ -124,7 +126,21 @@ void Leg::setFeetPosition(Vec3 globalFeetPosition)
     }
 }
 
-void Leg::update()
+void Leg::translateFeetPosition(Vec3 translation)
+{
+    setFeetPosition(currentFeetPosition + translation);
+}
+
+void Leg::updateFeetPosition()
 {
     setFeetPosition(currentFeetPosition);
+}
+
+void Leg::rotateFeetPosition(double deltaAngle, Vec3 offsetFeetPosition)
+{
+    double prevAngle = toPositiveRad(atan2(currentFeetPosition.y, currentFeetPosition.x));
+    double newAngle = prevAngle + deltaAngle;
+    Vec3 feetPosition = Vec3(cos(newAngle), sin(newAngle), 0) * FEET_DISTANCE_FROM_CENTER_STANDING + offsetFeetPosition;
+    
+    setFeetPosition(feetPosition);
 }

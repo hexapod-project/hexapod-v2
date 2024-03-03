@@ -9,7 +9,8 @@
 
 // 0 = Hexapod, 1 = Servo Calibration, 2 = Servo Tests
 #define MODE 0
-#define DEBUG_MODE false
+#define DEBUG_MODE_LEGS false
+#define SERIAL_CONTROL_MODE false
 
 // Servo Constants
 #define SERVO_ANGLES_MIN -75
@@ -37,21 +38,22 @@ extern std::map<int, Leg *> LEGS;
 #define REST_HEIGHT 0
 #define STAND_HEIGHT 40
 #define FEET_DISTANCE_FROM_CENTER_REST 180
-#define FEET_DISTANCE_FROM_CENTER_STANDING 190
+#define FEET_DISTANCE_FROM_CENTER_STANDING 180
 
 extern std::map<int, Vec3 *> FEET_POSITIONS_STANDING;
 extern std::map<int, Vec3 *> FEET_POSITIONS_REST;
 
 // Step Properties
+#define STEP_FRAMERATE 24 //How often to update the gaits
 #define STEP_DISTANCE 50
-#define STEP_HEIGHT 20
-#define STEP_DURATION 10 //in secconds
+#define STEP_HEIGHT 40
+#define STEP_DURATION 0.65//in seconds
 
 // Roll Pitch Properties
 #define ROLL_ANGLE 20
 #define PITCH_ANGLE 20
 
 // Rotate Properties
-#define ROTATE_ANGLE_PER_STEP 5
+#define ROTATE_ANGLE_PER_STEP 10
 
 #endif

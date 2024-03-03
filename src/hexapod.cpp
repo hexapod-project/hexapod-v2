@@ -2,10 +2,6 @@
 #include "Configuration.h"
 #include "Utils.h"
 
-Hexapod::Hexapod()
-{
-}
-
 void Hexapod::init()
 {
     servoDriverLeft->begin();
@@ -30,19 +26,17 @@ void Hexapod::init()
         this->legs[i]->setRoot(&matrix);
     }
 
+    gaitsManager.init(this);
+    gaitsManager.selectGait(GaitType::TRIPOD);
+
     rest();
     delay(1000);
     stand();
 
-    Serial.println("Initialized.");
-    Serial.print("Clock Frequency:");
-    Serial.print("Delta Time:");
-    Serial.println(getDeltaTime());
-
     pinMode(LED_BUILTIN, OUTPUT);
     digitalWrite(LED_BUILTIN, HIGH);
 
-    delay(1000);
+    delay(250);
 }
 
 void Hexapod::resetMatrix()
@@ -76,19 +70,51 @@ void Hexapod::stand()
     }
 }
 
-void Hexapod::update()
+void Hexapod::startWalk(double walkDirection)
 {
-    
+    gaitsManager.startWalk(toRadians(walkDirection));
 }
 
-void Hexapod::updateLegs()
+void Hexapod::stop()
 {
+    gaitsManager.stop();
+}
+
+void Hexapod::walk(WalkTranslations stepTranslations)
+{
+    matrix = matrix.translate(stepTranslations.bodyTranslation);
+
     for (int i = 0; i < LEGS_COUNT; i++)
     {
-        this->legs[i]->update();
+        if (std::find(stepTranslations.legs.begin(), stepTranslations.legs.end(), i) != stepTranslations.legs.end())
+        {
+            this->legs[i]->translateFeetPosition(stepTranslations.feetTranslation);
+        }
+        else
+        {
+            this->legs[i]->updateFeetPosition();
+        }
     }
 }
 
-void Hexapod::walk(double walkDirection)
+void Hexapod::startRotate(RotateDirection rotateDirection)
 {
+    gaitsManager.startRotate(rotateDirection);
+}
+
+void Hexapod::rotate(Rotations rotations)
+{
+    matrix = matrix.rotate(Vec3(0, 0, rotations.bodyDeltaAngle));
+
+    for (int i = 0; i < LEGS_COUNT; i++)
+    {
+        if (std::find(rotations.legs.begin(), rotations.legs.end(), i) != rotations.legs.end())
+        {
+            this->legs[i]->rotateFeetPosition(rotations.feetDeltaAngle, Vec3(0, 0, rotations.feetZ));
+        }
+        else
+        {
+            this->legs[i]->updateFeetPosition();
+        }
+    }
 }
