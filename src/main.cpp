@@ -1,113 +1,161 @@
+#include <string>
 #include <Arduino.h>
-#include <BluetoothSerial.h>
-#include "Hexapod.h"
-#include "ServoCalibrator.h"
-#include "ServoTester.h"
-#include "Configuration.h"
-#include <esp32/clk.h>
+#include <Preferences.h>
 
-BluetoothSerial bluetooth;
+#include "Hexapod.h"
+#include "Configuration.h"
+#include "HexapodBLE.h"
+#include "Constants.h"
+#include "Calibrator.h"
+#include "Utils.h"
+
+bool isConnected = false;
+
 int bluetoothMessage;
 Hexapod hexapod = Hexapod();
+HexapodBLE hexapodBLE = HexapodBLE();
+Calibrator calibrator = Calibrator(&hexapod);
 
-ServoCalibrator servoCalibrator = ServoCalibrator();
-ServoTester servoTester = ServoTester();
+class HexapodBLEServerCallbacks : public BLEServerCallbacks
+{
+  void onConnect(BLEServer *server)
+  {
+    Serial.println("Bluetooh Connected");
+    server->getAdvertising()->stop();
+  }
+
+  void onDisconnect(BLEServer *server)
+  {
+    Serial.println("Bluetooth Disconnected");
+    server->startAdvertising();
+    hexapod.stop();
+  }
+};
+
+class MoveCharacteristicCallbacks : public BLECharacteristicCallbacks
+{
+  void onWrite(BLECharacteristic *characteristic)
+  {
+    std::string moveData = characteristic->getValue();
+    WalkDirection walkDirection = static_cast<WalkDirection>(std::stoi(moveData));
+
+    switch (walkDirection)
+    {
+    case WalkDirection::FORWARD:
+      hexapod.startWalk(90);
+      break;
+    case WalkDirection::BACKWARD:
+      hexapod.startWalk(270);
+      break;
+    case WalkDirection::LEFT:
+      hexapod.startWalk(180);
+      break;
+    case WalkDirection::RIGHT:
+      hexapod.startWalk(0);
+      break;
+    default:
+      hexapod.stop();
+    }
+  }
+};
+
+class RotateCharacteristicCallbacks : public BLECharacteristicCallbacks
+{
+  void onWrite(BLECharacteristic *characteristic)
+  {
+    std::string moveData = characteristic->getValue();
+    RotateDirection rotateDirection = static_cast<RotateDirection>(std::stoi(moveData));
+
+    switch (rotateDirection)
+    {
+    case RotateDirection::ROTATE_LEFT:
+    case RotateDirection::ROTATE_RIGHT:
+      hexapod.startRotate(rotateDirection);
+      break;
+    default:
+      hexapod.stop();
+    }
+  }
+};
+
+class RollPitchCharacteristicCallbacks : public BLECharacteristicCallbacks
+{
+  void onWrite(BLECharacteristic *characteristic)
+  {
+    Serial.println(characteristic->getValue().c_str());
+  }
+};
+
+class PWMPulseCharacteristicCallbacks : public BLECharacteristicCallbacks
+{
+  void onRead(BLECharacteristic *characteristic)
+  {
+    uint8_t *calibrationSettings = calibrator.getCalibrationSettings();
+    std::string value = byteArrayToString(calibrationSettings, SERVO_COUNT * sizeof(u_int16_t));
+
+    characteristic->setValue(value);
+  }
+
+  void onWrite(BLECharacteristic *characteristic)
+  {
+    std::string pwmPulseData = characteristic->getValue();
+
+    uint8_t servoIndex = pwmPulseData[0];
+    uint16_t pulse = (pwmPulseData[1] << 8) | pwmPulseData[2];
+
+    calibrator.setPWMPulse(servoIndex, pulse);
+  }
+};
+
+class MoveServoCharacteristicCallbacks : public BLECharacteristicCallbacks
+{
+  void onWrite(BLECharacteristic *characteristic)
+  {
+    std::string pwmPulseData = characteristic->getValue();
+
+    uint8_t servoIndex = pwmPulseData[0];
+    short angle = pwmPulseData[1] + SERVO_ANGLES_MIN;
+
+    calibrator.testServoAngle(servoIndex, angle);
+  }
+};
+
+class HexapodModeCharacteristicCallbacks : public BLECharacteristicCallbacks
+{
+  void onRead(BLECharacteristic *characteristic)
+  {
+    HexapodMode mode = hexapod.getMode();
+
+    characteristic->setValue(std::to_string(mode));
+  }
+
+  void onWrite(BLECharacteristic *characteristic)
+  {
+    std::string modeData = characteristic->getValue();
+    HexapodMode mode = static_cast<HexapodMode>(std::stoi(modeData));
+
+    hexapod.switchMode(mode);
+  }
+};
 
 void setup()
 {
   Serial.begin(115200);
 
-  bluetooth.begin("Hexapod");
+  hexapodBLE.initBLE(new HexapodBLEServerCallbacks(),
+                     new MoveCharacteristicCallbacks(),
+                     new RotateCharacteristicCallbacks(),
+                     new RollPitchCharacteristicCallbacks(),
+                     new PWMPulseCharacteristicCallbacks(),
+                     new MoveServoCharacteristicCallbacks(),
+                     new HexapodModeCharacteristicCallbacks);
 
   pinMode(LED_BUILTIN, OUTPUT);
 
-  switch (MODE)
-  {
-  case 1:
-    servoCalibrator.setup();
-    break;
-
-  case 2:
-    servoTester.setup();
-    break;
-
-  default:
-    hexapod.init();
-    break;
-  }
-}
-
-void bluetoothController()
-{
-
-  if (bluetooth.available())
-  {
-    bluetoothMessage = bluetooth.read();
-  }
-}
-
-void serialController()
-{
-  Serial.println("Enter 0-360 for walk direction, 'R' (Rotate CW), 'L' (Rotate CCW)  or 'S' (stop):");
-
-  while (Serial.available() == 0)
-  {
-  }
-
-  String input = Serial.readString();
-  input.trim();
-  input.toUpperCase();
-
-  if (input[0] == 'S')
-  {
-    hexapod.stop();
-
-    Serial.println("Stopping Hexapod.");
-  }
-  else if (input[0] == 'R')
-  {
-    hexapod.startRotate(RotateDirection::CW);
-  }
-  else if (input[0] == 'L')
-  {
-    hexapod.startRotate(RotateDirection::CCW);
-  }
-  else
-  {
-    int walkDirection = input.toInt();
-    walkDirection = std::clamp(walkDirection, 0, 360);
-
-    hexapod.startWalk(walkDirection);
-
-    Serial.print("Walking towards ");
-    Serial.println(walkDirection);
-  }
-}
-
-void hexapodController()
-{
-  bluetoothController();
-
-  if (SERIAL_CONTROL_MODE)
-  {
-    serialController();
-  }
+  calibrator.init();
+  hexapod.init();
 }
 
 void loop()
 {
-  switch (MODE)
-  {
-  case 1:
-    servoCalibrator.loop();
-    break;
-
-  case 2:
-    servoTester.loop();
-    break;
-
-  default:
-    hexapodController();
-    break;
-  }
 }

@@ -1,26 +1,11 @@
-#ifndef GaitManager_H
-#define GaitManager_H
+#pragma once
 
 #include "Gaits.h"
 #include "Vec3.h"
 #include <vector>
+#include "Enums.h"
 
 class Hexapod;
-
-enum RotateDirection
-{
-    CW,
-    CCW
-};
-
-enum GaitsManagerStates
-{
-    MOVING,
-    CHANGE_DIRECTION,
-    STOP_QUEUED,
-    STOPPING,
-    STOPPED,
-};
 
 struct WalkTranslations
 {
@@ -97,5 +82,3 @@ public:
     void startRotate(RotateDirection rotateDirection);
     void stop();
 };
-
-#endif

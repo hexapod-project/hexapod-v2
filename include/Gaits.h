@@ -1,15 +1,8 @@
-#ifndef Gaits_H
-#define Gaits_H
+#pragma once
 
 #include <map>
 #include <vector>
 #include "Leg.h"
-
-enum GaitType
-{
-    TRIPOD
-};
+#include "Enums.h"
 
 extern std::map<GaitType, std::vector<std::vector<LegType>>> GAITS;
-
-#endif

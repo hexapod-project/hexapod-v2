@@ -1,6 +1,8 @@
+#include <algorithm>
+
 #include "Servo.h"
 #include "Configuration.h"
-#include <algorithm>
+#include "Constants.h"
 
 Servo::Servo(Adafruit_PWMServoDriver *servoDriver, int pinNo, int minPulse, int maxPulse)
 {
@@ -17,6 +19,17 @@ double Servo::getPulse(double angle)
 }
 
 void Servo::setAngle(double angle)
-{    
+{
     servoDriver->writeMicroseconds(pinNo, getPulse(angle));
+}
+
+int Servo::getAveragePulse()
+{
+    return round((this->minPulse + this->maxPulse) / 2.0);
+}
+
+void Servo::calibrate(int averagePulse)
+{
+    this->minPulse = averagePulse - SERVO_PULSE_INTERVAL;
+    this->maxPulse = averagePulse + SERVO_PULSE_INTERVAL;
 }

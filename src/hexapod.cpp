@@ -17,7 +17,15 @@ void Hexapod::init()
     this->legs[LegType::RIGHT_MID] = LEGS[LegType::RIGHT_MID];
     this->legs[LegType::RIGHT_BACK] = LEGS[LegType::RIGHT_BACK];
 
+    this->initNormalMode();
+}
+
+void Hexapod::initNormalMode()
+{
+    digitalWrite(LED_BUILTIN, LOW);
+
     Vec3 baseBodyPosition = Vec3(0, 0, BODY_OFFSET_Z);
+    matrix = Mat4();
     matrix = matrix.translate(baseBodyPosition);
     originalMatrix.set(matrix);
 
@@ -33,10 +41,7 @@ void Hexapod::init()
     delay(1000);
     stand();
 
-    pinMode(LED_BUILTIN, OUTPUT);
     digitalWrite(LED_BUILTIN, HIGH);
-
-    delay(250);
 }
 
 void Hexapod::resetMatrix()
@@ -72,6 +77,11 @@ void Hexapod::stand()
 
 void Hexapod::startWalk(double walkDirection)
 {
+    if (mode != HexapodMode::CONTROLLER)
+    {
+        return;
+    }
+
     gaitsManager.startWalk(toRadians(walkDirection));
 }
 
@@ -99,6 +109,11 @@ void Hexapod::walk(WalkTranslations stepTranslations)
 
 void Hexapod::startRotate(RotateDirection rotateDirection)
 {
+    if (mode != HexapodMode::CONTROLLER)
+    {
+        return;
+    }
+
     gaitsManager.startRotate(rotateDirection);
 }
 
@@ -116,5 +131,35 @@ void Hexapod::rotate(Rotations rotations)
         {
             this->legs[i]->updateFeetPosition();
         }
+    }
+}
+
+void Hexapod::initCalibrateMode()
+{
+    digitalWrite(LED_BUILTIN, LOW);
+
+    for (int i = 0; i < LEGS_COUNT; i++)
+    {
+        this->legs[i]->setJointPositions(0, 0, 0);
+    }
+}
+
+HexapodMode Hexapod::getMode()
+{
+    return this->mode;
+}
+
+void Hexapod::switchMode(HexapodMode mode)
+{
+    this->mode = mode;
+
+    switch (mode)
+    {
+    case HexapodMode::CONTROLLER:
+        initNormalMode();
+        break;
+    case HexapodMode::CALIBRATE:
+        initCalibrateMode();
+        break;
     }
 }

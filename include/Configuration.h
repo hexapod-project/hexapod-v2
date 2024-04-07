@@ -1,5 +1,4 @@
-#ifndef Configuration_H
-#define Configuration_H
+#pragma once
 
 #include <map>
 #include "Servo.h"
@@ -31,7 +30,7 @@ extern std::map<int, Servo *> SERVOS;
 
 extern std::map<int, Leg *> LEGS;
 
-//Body Positions
+// Body Positions
 #define BODY_OFFSET_Z 10
 
 // Feet Properties
@@ -44,10 +43,10 @@ extern std::map<int, Vec3 *> FEET_POSITIONS_STANDING;
 extern std::map<int, Vec3 *> FEET_POSITIONS_REST;
 
 // Step Properties
-#define STEP_FRAMERATE 24 //How often to update the gaits
+#define STEP_FRAMERATE 24 // How often to update the gaits
 #define STEP_DISTANCE 50
 #define STEP_HEIGHT 40
-#define STEP_DURATION 0.65//in seconds
+#define STEP_DURATION 0.5 // in seconds
 
 // Roll Pitch Properties
 #define ROLL_ANGLE 20
@@ -55,5 +54,3 @@ extern std::map<int, Vec3 *> FEET_POSITIONS_REST;
 
 // Rotate Properties
 #define ROTATE_ANGLE_PER_STEP 10
-
-#endif

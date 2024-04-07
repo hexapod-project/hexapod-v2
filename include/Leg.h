@@ -1,20 +1,10 @@
-#ifndef Leg_H
-#define Leg_H
+#pragma once
 
 #include <vector>
 #include "Servo.h"
 #include "Vec3.h"
 #include "Mat4.h"
-
-enum LegType
-{
-    LEFT_FRONT,
-    LEFT_MID,
-    LEFT_BACK,
-    RIGHT_FRONT,
-    RIGHT_MID,
-    RIGHT_BACK,
-};
+#include "Enums.h"
 
 class Leg
 {
@@ -40,6 +30,5 @@ public:
     void rotateFeetPosition(double angle, Vec3 offsetFeetPosition);
     double getBaseAngle();
     double getBaseAngleInRadians();
+    void setJointPositions(double coxaAngle, double femurAngle, double tibiaAngle);
 };
-
-#endif

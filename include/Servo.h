@@ -1,5 +1,4 @@
-#ifndef Servo_H
-#define Servo_H
+#pragma once
 
 #include <Adafruit_PWMServoDriver.h>
 
@@ -26,7 +25,7 @@ private:
 
 public:
     Servo(Adafruit_PWMServoDriver *servoDriver, int pinNo, int minPulse, int maxPulse);
+    int getAveragePulse();
     void setAngle(double radians);
+    void calibrate(int averagePulse);
 };
-
-#endif

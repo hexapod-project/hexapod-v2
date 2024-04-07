@@ -74,6 +74,7 @@ double Leg::getTibiaAngle(Vec3 feetPosition)
     return toDegrees(radians);
 }
 
+// Check whether the angles should be flipped depending if the leg is on left ir right side
 double Leg::checkAngleOrientation(double angle)
 {
     if (fabs(baseAngle) > 90)
@@ -141,6 +142,13 @@ void Leg::rotateFeetPosition(double deltaAngle, Vec3 offsetFeetPosition)
     double prevAngle = toPositiveRad(atan2(currentFeetPosition.y, currentFeetPosition.x));
     double newAngle = prevAngle + deltaAngle;
     Vec3 feetPosition = Vec3(cos(newAngle), sin(newAngle), 0) * FEET_DISTANCE_FROM_CENTER_STANDING + offsetFeetPosition;
-    
+
     setFeetPosition(feetPosition);
+}
+
+void Leg::setJointPositions(double coxaAngle, double femurAngle, double tibiaAngle)
+{
+    coxaServo->setAngle(toRadians(coxaAngle));
+    femurServo->setAngle(toRadians(femurAngle));
+    tibiaServo->setAngle(toRadians(tibiaAngle));
 }

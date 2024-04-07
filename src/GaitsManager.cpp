@@ -126,7 +126,7 @@ void GaitsManager::checkWalkDirection()
 
 void GaitsManager::startWalk(double walkDirection)
 {
-    if (state != GaitsManagerStates::MOVING)
+    if (state == GaitsManagerStates::STOPPED)
     {
         this->walkDirection = walkDirection;
 
@@ -172,7 +172,7 @@ void GaitsManager::_updateRotateStep()
 
     double rotateAngle = -toRadians(ROTATE_ANGLE_PER_STEP);
 
-    if (rotateDirection == RotateDirection::CCW)
+    if (rotateDirection == RotateDirection::ROTATE_LEFT)
     {
         rotateAngle = -rotateAngle;
     }
@@ -232,7 +232,7 @@ void GaitsManager::checkRotateDirection()
 
 void GaitsManager::startRotate(RotateDirection rotateDirection)
 {
-    if (state != GaitsManagerStates::MOVING)
+    if (state == GaitsManagerStates::STOPPED)
     {
         this->rotateDirection = rotateDirection;
         this->newRotateDirection = rotateDirection;
