@@ -172,7 +172,7 @@ void GaitsManager::_updateRotateStep()
 
     double rotateAngle = -toRadians(ROTATE_ANGLE_PER_STEP);
 
-    if (rotateDirection == RotateDirection::ROTATE_LEFT)
+    if (rotateDirection == RotateDirection::ROTATE_RIGHT)
     {
         rotateAngle = -rotateAngle;
     }
