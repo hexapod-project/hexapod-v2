@@ -44,9 +44,9 @@ extern std::map<int, Vec3 *> FEET_POSITIONS_REST;
 
 // Step Properties
 #define STEP_FRAMERATE 24 // How often to update the gaits
-#define STEP_DISTANCE 100
+#define STEP_DISTANCE 150
 #define STEP_HEIGHT 80
-#define STEP_DURATION 0.5 // in seconds +500ms (i2c delay)
+#define STEP_DURATION 0.3 // in seconds +500ms(i2c delay)
 
 // Roll Pitch Properties
 #define ROLL_ANGLE 20

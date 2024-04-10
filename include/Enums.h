@@ -24,6 +24,7 @@ enum WalkDirection
 enum GaitsManagerStates
 {
     MOVING,
+    STOP_TO_CHANGE_DIRECTION,
     CHANGE_DIRECTION,
     STOP_QUEUED,
     STOPPING,

@@ -85,7 +85,7 @@ double Leg::checkAngleOrientation(double angle)
     return angle;
 }
 
-void Leg::setFeetPosition(Vec3 globalFeetPosition)
+void Leg::setFeetPosition(Vec3 globalFeetPosition, bool updateCurrentFeetPosition)
 {
     Mat4 inverseMatrix = root->multiply(matrix).inverse();
     Vec3 localFeetPosition = inverseMatrix.multiply(Vec4(globalFeetPosition, 1));
@@ -107,7 +107,10 @@ void Leg::setFeetPosition(Vec3 globalFeetPosition)
     femurServo->setAngle(femurAngle);
     tibiaServo->setAngle(tibiaAngle);
 
-    currentFeetPosition = globalFeetPosition;
+    if (updateCurrentFeetPosition)
+    {
+        currentFeetPosition = globalFeetPosition;
+    }
 
     if (DEBUG_MODE_LEGS)
     {
@@ -127,9 +130,9 @@ void Leg::setFeetPosition(Vec3 globalFeetPosition)
     }
 }
 
-void Leg::translateFeetPosition(Vec3 translation)
+void Leg::translateFeetPosition(Vec3 translation, bool updateCurrentFeetPosition)
 {
-    setFeetPosition(currentFeetPosition + translation);
+    setFeetPosition(currentFeetPosition + translation, updateCurrentFeetPosition);
 }
 
 void Leg::updateFeetPosition()
@@ -146,9 +149,9 @@ void Leg::rotateFeetPosition(double deltaAngle, Vec3 offsetFeetPosition)
     setFeetPosition(feetPosition);
 }
 
-void Leg::setJointPositions(double coxaAngle, double femurAngle, double tibiaAngle)
+void Leg::setJointPositions(double coxaDeg, double femurDeg, double tibiaDeg)
 {
-    coxaServo->setAngle(toRadians(coxaAngle));
-    femurServo->setAngle(toRadians(femurAngle));
-    tibiaServo->setAngle(toRadians(tibiaAngle));
+    coxaServo->setAngle(checkAngleOrientation(coxaDeg));
+    femurServo->setAngle(checkAngleOrientation(femurDeg));
+    tibiaServo->setAngle(checkAngleOrientation(tibiaDeg));
 }

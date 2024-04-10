@@ -1,6 +1,7 @@
 #include "Constants.h"
 
 BLECharacteristic HEXAPOD_MODE_CHARACTERISTIC("e87e1c16-1a8d-4e0e-b6af-6c4a22bbd1ae", BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_WRITE);
+BLECharacteristic HEXAPOD_REST_CHARACTERISTIC("f84908a4-5f6e-4a3d-9874-8a4c08f90320", BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_WRITE);
 
 BLECharacteristic MOVE_CHARACTERISTIC("7e3b9a17-44bb-4f39-9ff7-d2e8c1e4aa62", BLECharacteristic::PROPERTY_WRITE_NR | BLECharacteristic::PROPERTY_WRITE);
 BLECharacteristic ROTATE_CHARACTERISTIC("a57dcdea-ef1f-43ae-b7b6-76dcd5c4f0e4", BLECharacteristic::PROPERTY_WRITE_NR | BLECharacteristic::PROPERTY_WRITE);

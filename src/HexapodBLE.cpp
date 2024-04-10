@@ -8,7 +8,8 @@ void HexapodBLE::initBLE(BLEServerCallbacks *bleServerCallbacks,
                          BLECharacteristicCallbacks *rollPitchCharacteristicCallbacks,
                          BLECharacteristicCallbacks *pwmPulseCharacteristicCallbacks,
                          BLECharacteristicCallbacks *moveServoCharacteristicCallbacks,
-                         BLECharacteristicCallbacks *hexapodModeCharacteristicCallbacks)
+                         BLECharacteristicCallbacks *hexapodModeCharacteristicCallbacks,
+                         BLECharacteristicCallbacks *hexapodRestCharacteristicCallbacks)
 {
     BLEDevice::init(SKU);
 
@@ -34,8 +35,10 @@ void HexapodBLE::initBLE(BLEServerCallbacks *bleServerCallbacks,
 
     BLEService *hexapodService = bleServer->createService(HEXAPOD_SERVICE_UUID);
     hexapodService->addCharacteristic(&HEXAPOD_MODE_CHARACTERISTIC);
+    hexapodService->addCharacteristic(&HEXAPOD_REST_CHARACTERISTIC);
 
     HEXAPOD_MODE_CHARACTERISTIC.setCallbacks(hexapodModeCharacteristicCallbacks);
+    HEXAPOD_REST_CHARACTERISTIC.setCallbacks(hexapodRestCharacteristicCallbacks);
 
     motionService->start();
     calibrateService->start();

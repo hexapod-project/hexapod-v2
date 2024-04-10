@@ -7,19 +7,22 @@
 
 class Hexapod;
 
-struct WalkTranslations
+struct WalkPositions
 {
     std::vector<LegType> legs;
-    Vec3 feetTranslation;
-    Vec3 bodyTranslation;
+    Vec3 feetPosition;
+    Vec3 bodyPosition;
+    bool isEnded;
 
-    WalkTranslations(std::vector<LegType> legs,
-                     Vec3 feetTranslation,
-                     Vec3 bodyTranslation)
+    WalkPositions(std::vector<LegType> legs,
+                  Vec3 feetPosition,
+                  Vec3 bodyPosition,
+                  bool isEnded)
     {
         this->legs = legs;
-        this->feetTranslation = feetTranslation;
-        this->bodyTranslation = bodyTranslation;
+        this->feetPosition = feetPosition;
+        this->bodyPosition = bodyPosition;
+        this->isEnded = isEnded;
     }
 };
 
@@ -31,9 +34,9 @@ struct Rotations
     double feetZ;
 
     Rotations(std::vector<LegType> legs,
-                       double bodyDeltaAngle,
-                       double feetDeltaAngle,
-                       double feetZ)
+              double bodyDeltaAngle,
+              double feetDeltaAngle,
+              double feetZ)
     {
         this->legs = legs;
         this->bodyDeltaAngle = bodyDeltaAngle;
@@ -57,7 +60,7 @@ private:
 
     RotateDirection rotateDirection;
     RotateDirection newRotateDirection;
-    
+
     int stepsCount;
     int stepFrame;
 
@@ -81,4 +84,5 @@ public:
     void startWalk(double walkDirection);
     void startRotate(RotateDirection rotateDirection);
     void stop();
+    GaitsManagerStates getState();
 };

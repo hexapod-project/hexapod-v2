@@ -37,23 +37,14 @@ class MoveCharacteristicCallbacks : public BLECharacteristicCallbacks
   void onWrite(BLECharacteristic *characteristic)
   {
     std::string moveData = characteristic->getValue();
-    WalkDirection walkDirection = static_cast<WalkDirection>(std::stoi(moveData));
+    int walkDirection = std::stoi(moveData);
 
-    switch (walkDirection)
+    if (walkDirection >= 0)
     {
-    case WalkDirection::FORWARD:
-      hexapod.startWalk(90);
-      break;
-    case WalkDirection::BACKWARD:
-      hexapod.startWalk(270);
-      break;
-    case WalkDirection::LEFT:
-      hexapod.startWalk(180);
-      break;
-    case WalkDirection::RIGHT:
-      hexapod.startWalk(0);
-      break;
-    default:
+      hexapod.startWalk(walkDirection);
+    }
+    else
+    {
       hexapod.stop();
     }
   }
@@ -82,7 +73,17 @@ class RollPitchCharacteristicCallbacks : public BLECharacteristicCallbacks
 {
   void onWrite(BLECharacteristic *characteristic)
   {
-    Serial.println(characteristic->getValue().c_str());
+    std::string rollPitchData = characteristic->getValue();
+    int rollPitchAngle = std::stoi(rollPitchData);
+
+    if (rollPitchAngle >= 0)
+    {
+      hexapod.rollAndPitch(rollPitchAngle);
+    }
+    else
+    {
+      hexapod.stand();
+    }
   }
 };
 
@@ -138,6 +139,30 @@ class HexapodModeCharacteristicCallbacks : public BLECharacteristicCallbacks
   }
 };
 
+class HexapodRestCharacteristicCallbacks : public BLECharacteristicCallbacks
+{
+  void onRead(BLECharacteristic *characteristic)
+  {
+    bool isRest = hexapod.isRest();
+
+    characteristic->setValue(std::to_string(isRest));
+  }
+
+  void onWrite(BLECharacteristic *characteristic)
+  {
+    std::string isRest = characteristic->getValue();
+
+    if (isRest == "1")
+    {
+      hexapod.rest();
+    }
+    else
+    {
+      hexapod.stand();
+    }
+  }
+};
+
 void setup()
 {
   Serial.begin(115200);
@@ -148,7 +173,8 @@ void setup()
                      new RollPitchCharacteristicCallbacks(),
                      new PWMPulseCharacteristicCallbacks(),
                      new MoveServoCharacteristicCallbacks(),
-                     new HexapodModeCharacteristicCallbacks);
+                     new HexapodModeCharacteristicCallbacks(),
+                     new HexapodRestCharacteristicCallbacks());
 
   pinMode(LED_BUILTIN, OUTPUT);
 

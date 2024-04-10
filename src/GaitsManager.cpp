@@ -71,28 +71,28 @@ void GaitsManager::_updateWalkStep()
 
     double stepDistance = STEP_DISTANCE;
 
-    if (stepsCount == 0 || state == GaitsManagerStates::CHANGE_DIRECTION || state == GaitsManagerStates::STOPPING)
+    if (stepsCount == 0 || state == GaitsManagerStates::STOP_TO_CHANGE_DIRECTION || state == GaitsManagerStates::CHANGE_DIRECTION || state == GaitsManagerStates::STOPPING)
     {
         stepDistance /= 2;
     }
 
     int totalFrames = STEP_FRAMERATE * STEP_DURATION;
 
-    double prevInterpolator = (double)max(stepFrame - 1, 0) / totalFrames;
     double interpolator = (double)stepFrame / totalFrames;
-    double feetZ = (sin(interpolator * M_PI) - sin(prevInterpolator * M_PI)) * STEP_HEIGHT;
-    double feetDistance = stepDistance / totalFrames;
+    double feetZ = sin(interpolator * M_PI) * STEP_HEIGHT;
+    double feetDistance = stepDistance * interpolator;
     double bodyDistance = feetDistance / 2;
 
     double cosWalkDirection = cos(walkDirection);
     double sinWalkDirection = sin(walkDirection);
 
-    Vec3 bodyTranslation = Vec3(cosWalkDirection * bodyDistance, sinWalkDirection * bodyDistance, 0);
-    Vec3 feetTranslation = Vec3(cosWalkDirection * feetDistance, sinWalkDirection * feetDistance, feetZ);
+    Vec3 bodyPosition = Vec3(cosWalkDirection * bodyDistance, sinWalkDirection * bodyDistance, 0);
+    Vec3 feetPosition = Vec3(cosWalkDirection * feetDistance, sinWalkDirection * feetDistance, feetZ);
 
-    hexapod->walk(WalkTranslations(selectedGait[stepsCount % maxStepsCount],
-                                   feetTranslation,
-                                   bodyTranslation));
+    hexapod->walk(WalkPositions(selectedGait[stepsCount % maxStepsCount],
+                                feetPosition,
+                                bodyPosition,
+                                stepFrame == totalFrames));
 
     stepFrame++;
 
@@ -110,16 +110,19 @@ void GaitsManager::checkWalkDirection()
 {
     if (newWalkDirection != -1)
     {
-        if (state != GaitsManagerStates::CHANGE_DIRECTION)
+        switch (state)
         {
-            state = GaitsManagerStates::CHANGE_DIRECTION;
-        }
-        else
-        {
-            state = GaitsManagerStates::MOVING;
-
+        case GaitsManagerStates::MOVING:
+            state = GaitsManagerStates::STOP_TO_CHANGE_DIRECTION;
+            break;
+        case GaitsManagerStates::STOP_TO_CHANGE_DIRECTION:
             walkDirection = newWalkDirection;
+            state = GaitsManagerStates::CHANGE_DIRECTION;
+            break;
+        case GaitsManagerStates::CHANGE_DIRECTION:
             newWalkDirection = -1;
+            state = GaitsManagerStates::MOVING;
+            break;
         }
     }
 }
@@ -141,7 +144,7 @@ void GaitsManager::startWalk(double walkDirection)
             NULL,
             0);
     }
-    else if (!compare(this->walkDirection, walkDirection))
+    else if (state == GaitsManagerStates::MOVING && !compare(this->walkDirection, walkDirection))
     {
         this->newWalkDirection = walkDirection;
     }
@@ -186,7 +189,7 @@ void GaitsManager::_updateRotateStep()
     double bodyDeltaAngle = deltaAngle;
     double feetDeltaAngle = deltaAngle * 2;
 
-    if (state == GaitsManagerStates::CHANGE_DIRECTION || state == GaitsManagerStates::STOPPING)
+    if (state == GaitsManagerStates::STOP_TO_CHANGE_DIRECTION || state == GaitsManagerStates::STOPPING)
     {
         if (stepsCount % maxStepsCount == 0)
         {
@@ -217,9 +220,9 @@ void GaitsManager::checkRotateDirection()
 {
     if (rotateDirection != newRotateDirection)
     {
-        if (state != GaitsManagerStates::CHANGE_DIRECTION)
+        if (state != GaitsManagerStates::STOP_TO_CHANGE_DIRECTION)
         {
-            state = GaitsManagerStates::CHANGE_DIRECTION;
+            state = GaitsManagerStates::STOP_TO_CHANGE_DIRECTION;
         }
         else
         {
@@ -257,4 +260,9 @@ void GaitsManager::startRotate(RotateDirection rotateDirection)
 void GaitsManager::selectGait(GaitType gaitType)
 {
     selectedGait = GAITS[gaitType];
+}
+
+GaitsManagerStates GaitsManager::getState()
+{
+    return this->state;
 }

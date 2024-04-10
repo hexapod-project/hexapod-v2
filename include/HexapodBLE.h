@@ -16,5 +16,6 @@ public:
                  BLECharacteristicCallbacks *rollPitchCharacteristicCallbacks,
                  BLECharacteristicCallbacks *pwmPulseCharacteristicCallbacks,
                  BLECharacteristicCallbacks *moveServoCharacteristicCallbacks,
-                 BLECharacteristicCallbacks *hexapodModeCharacteristicCallbacks);
+                 BLECharacteristicCallbacks *hexapodModeCharacteristicCallbacks,
+                 BLECharacteristicCallbacks *hexapodRestCharacteristicCallbacks);
 };

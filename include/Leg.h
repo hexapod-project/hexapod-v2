@@ -24,11 +24,11 @@ private:
 public:
     Leg(double angle, Servo *coxaServo, Servo *femurServo, Servo *tibiaServo);
     void setRoot(Mat4 *root);
-    void setFeetPosition(Vec3 feetPosition);
-    void translateFeetPosition(Vec3 translation);
+    void setFeetPosition(Vec3 feetPosition, bool updateCurrentFeetPosition = true);
+    void translateFeetPosition(Vec3 translation, bool updateCurrentFeetPosition = true);
     void updateFeetPosition();
     void rotateFeetPosition(double angle, Vec3 offsetFeetPosition);
     double getBaseAngle();
     double getBaseAngleInRadians();
-    void setJointPositions(double coxaAngle, double femurAngle, double tibiaAngle);
+    void setJointPositions(double coxaDeg, double femurDeg, double tibiaDeg);
 };

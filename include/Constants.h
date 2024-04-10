@@ -17,6 +17,7 @@
 
 #define HEXAPOD_SERVICE_UUID "a9b02c9e-1b0b-4b97-8b68-80af4a3bc6c4"
 extern BLECharacteristic HEXAPOD_MODE_CHARACTERISTIC;
+extern BLECharacteristic HEXAPOD_REST_CHARACTERISTIC;
 
 // Motion service
 #define MOTION_SERVICE_UUID "42e91a79-610e-40b3-8873-fd65d2c0d581"

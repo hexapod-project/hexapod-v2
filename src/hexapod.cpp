@@ -51,15 +51,17 @@ void Hexapod::resetMatrix()
 
 void Hexapod::rest()
 {
-    resetMatrix();
-
-    Vec3 bodyPosition = Vec3(0, 0, REST_HEIGHT);
-    matrix = matrix.translate(bodyPosition);
+    if (gaitsManager.getState() != GaitsManagerStates::STOPPED)
+    {
+        return;
+    }
 
     for (int i = 0; i < LEGS_COUNT; i++)
     {
-        this->legs[i]->setFeetPosition(*FEET_POSITIONS_REST[i]);
+        this->legs[i]->setJointPositions(0, SERVO_ANGLES_MIN, SERVO_ANGLES_MIN);
     }
+
+    _isRest = true;
 }
 
 void Hexapod::stand()
@@ -68,11 +70,14 @@ void Hexapod::stand()
 
     Vec3 bodyPosition = Vec3(0, 0, STAND_HEIGHT);
     matrix = matrix.translate(bodyPosition);
+    standMatrix.set(matrix);
 
     for (int i = 0; i < LEGS_COUNT; i++)
     {
         this->legs[i]->setFeetPosition(*FEET_POSITIONS_STANDING[i]);
     }
+
+    _isRest = false;
 }
 
 void Hexapod::startWalk(double walkDirection)
@@ -80,6 +85,11 @@ void Hexapod::startWalk(double walkDirection)
     if (mode != HexapodMode::CONTROLLER)
     {
         return;
+    }
+
+    if (gaitsManager.getState() == GaitsManagerStates::STOPPED)
+    {
+        walkMatrix.set(standMatrix);
     }
 
     gaitsManager.startWalk(toRadians(walkDirection));
@@ -90,20 +100,25 @@ void Hexapod::stop()
     gaitsManager.stop();
 }
 
-void Hexapod::walk(WalkTranslations stepTranslations)
+void Hexapod::walk(WalkPositions stepTranslations)
 {
-    matrix = matrix.translate(stepTranslations.bodyTranslation);
+    matrix = walkMatrix.translate(stepTranslations.bodyPosition);
 
     for (int i = 0; i < LEGS_COUNT; i++)
     {
         if (std::find(stepTranslations.legs.begin(), stepTranslations.legs.end(), i) != stepTranslations.legs.end())
         {
-            this->legs[i]->translateFeetPosition(stepTranslations.feetTranslation);
+            this->legs[i]->translateFeetPosition(stepTranslations.feetPosition, stepTranslations.isEnded);
         }
         else
         {
             this->legs[i]->updateFeetPosition();
         }
+    }
+
+    if (stepTranslations.isEnded)
+    {
+        walkMatrix.set(matrix);
     }
 }
 
@@ -162,4 +177,22 @@ void Hexapod::switchMode(HexapodMode mode)
         initCalibrateMode();
         break;
     }
+}
+
+void Hexapod::rollAndPitch(double angle)
+{
+    double radians = toRadians(angle);
+
+    matrix.set(standMatrix);
+    matrix = matrix.rotate(Vec3(sin(radians) * -toRadians(PITCH_ANGLE), cos(radians) * toRadians(ROLL_ANGLE), 0));
+
+    for (int i = 0; i < LEGS_COUNT; i++)
+    {
+        this->legs[i]->updateFeetPosition();
+    }
+}
+
+bool Hexapod::isRest()
+{
+    return this->_isRest;
 }
