@@ -1,28 +1,28 @@
 #include "Configuration.h"
 #include "Vec3.h"
 
-Adafruit_PWMServoDriver *servoDriverRight = new Adafruit_PWMServoDriver(0x40);
-Adafruit_PWMServoDriver *servoDriverLeft = new Adafruit_PWMServoDriver(0x41);
+Adafruit_PWMServoDriver *servoDriverLeft = new Adafruit_PWMServoDriver(0x40);
+Adafruit_PWMServoDriver *servoDriverRight = new Adafruit_PWMServoDriver(0x41);
 
 std::map<int, Servo *> SERVOS = {
-    {1, new Servo(servoDriverLeft, 0, 750, 2250)},
-    {2, new Servo(servoDriverLeft, 1, 750, 2250)},
-    {3, new Servo(servoDriverLeft, 2, 750, 2250)},
-    {4, new Servo(servoDriverLeft, 9, 750, 2250)},
-    {5, new Servo(servoDriverLeft, 10, 750, 2250)},
-    {6, new Servo(servoDriverLeft, 11, 750, 2250)},
-    {7, new Servo(servoDriverLeft, 13, 750, 2250)},
-    {8, new Servo(servoDriverLeft, 14, 750, 2250)},
-    {9, new Servo(servoDriverLeft, 15, 750, 2250)},
-    {10, new Servo(servoDriverRight, 15, 750, 2250)},
-    {11, new Servo(servoDriverRight, 14, 750, 2250)},
-    {12, new Servo(servoDriverRight, 13, 750, 2250)},
-    {13, new Servo(servoDriverRight, 6, 750, 2250)},
-    {14, new Servo(servoDriverRight, 5, 750, 2250)},
-    {15, new Servo(servoDriverRight, 4, 750, 2250)},
-    {16, new Servo(servoDriverRight, 2, 750, 2250)},
-    {17, new Servo(servoDriverRight, 1, 750, 2250)},
-    {18, new Servo(servoDriverRight, 0, 750, 2250)},
+    {1, new Servo(servoDriverLeft, 15, 750, 2250)},
+    {2, new Servo(servoDriverLeft, 14, 750, 2250)},
+    {3, new Servo(servoDriverLeft, 13, 750, 2250)},
+    {4, new Servo(servoDriverLeft, 7, 750, 2250)},
+    {5, new Servo(servoDriverLeft, 6, 750, 2250)},
+    {6, new Servo(servoDriverLeft, 5, 750, 2250)},
+    {7, new Servo(servoDriverLeft, 2, 750, 2250)},
+    {8, new Servo(servoDriverLeft, 1, 750, 2250)},
+    {9, new Servo(servoDriverLeft, 0, 750, 2250)},
+    {10, new Servo(servoDriverRight, 0, 750, 2250)},
+    {11, new Servo(servoDriverRight, 1, 750, 2250)},
+    {12, new Servo(servoDriverRight, 2, 750, 2250)},
+    {13, new Servo(servoDriverRight, 8, 750, 2250)},
+    {14, new Servo(servoDriverRight, 9, 750, 2250)},
+    {15, new Servo(servoDriverRight, 10, 750, 2250)},
+    {16, new Servo(servoDriverRight, 13, 750, 2250)},
+    {17, new Servo(servoDriverRight, 14, 750, 2250)},
+    {18, new Servo(servoDriverRight, 15, 750, 2250)},
 };
 
 std::map<int, Leg *> LEGS = {

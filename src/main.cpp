@@ -8,10 +8,12 @@
 #include "Constants.h"
 #include "Calibrator.h"
 #include "Utils.h"
+#include "DisplayManager.h"
 
 bool isConnected = false;
 
 int bluetoothMessage;
+DisplayManager displayManager = DisplayManager();
 Hexapod hexapod = Hexapod();
 HexapodBLE hexapodBLE = HexapodBLE();
 Calibrator calibrator = Calibrator(&hexapod);
@@ -79,10 +81,19 @@ class RollPitchCharacteristicCallbacks : public BLECharacteristicCallbacks
     if (rollPitchAngle >= 0)
     {
       hexapod.rollAndPitch(rollPitchAngle);
+      if (rollPitchAngle > 60 && rollPitchAngle < 120)
+      {
+        displayManager.displayAngryAnim();
+      }
+      else if (rollPitchAngle > 240 && rollPitchAngle < 300)
+      {
+        displayManager.displayHappyAnim();
+      }
     }
     else
     {
       hexapod.stand();
+      displayManager.displayIdleAnim();
     }
   }
 };
@@ -155,10 +166,12 @@ class HexapodRestCharacteristicCallbacks : public BLECharacteristicCallbacks
     if (isRest == "1")
     {
       hexapod.rest();
+      displayManager.displaySleepAnim();
     }
     else
     {
       hexapod.stand();
+      displayManager.displayIdleAnim();
     }
   }
 };
@@ -179,7 +192,10 @@ void setup()
   pinMode(LED_BUILTIN, OUTPUT);
 
   calibrator.init();
+  displayManager.init();
+  displayManager.displayLoadingAnim();
   hexapod.init();
+  displayManager.displayIdleAnim();
 }
 
 void loop()
