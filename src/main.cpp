@@ -81,19 +81,18 @@ class RollPitchCharacteristicCallbacks : public BLECharacteristicCallbacks
     if (rollPitchAngle >= 0)
     {
       hexapod.rollAndPitch(rollPitchAngle);
-      if (rollPitchAngle > 60 && rollPitchAngle < 120)
+      if (rollPitchAngle >= 80 && rollPitchAngle <= 100)
       {
-        displayManager.displayAngryAnim();
+        // displayManager.displayAngryAnim();
       }
-      else if (rollPitchAngle > 240 && rollPitchAngle < 300)
+      else if (rollPitchAngle >= 260 && rollPitchAngle < 280)
       {
-        displayManager.displayHappyAnim();
+        // displayManager.displayHappyAnim();
       }
     }
     else
     {
       hexapod.stand();
-      displayManager.displayIdleAnim();
     }
   }
 };
@@ -166,12 +165,10 @@ class HexapodRestCharacteristicCallbacks : public BLECharacteristicCallbacks
     if (isRest == "1")
     {
       hexapod.rest();
-      displayManager.displaySleepAnim();
     }
     else
     {
       hexapod.stand();
-      displayManager.displayIdleAnim();
     }
   }
 };
@@ -193,11 +190,11 @@ void setup()
 
   calibrator.init();
   displayManager.init();
-  displayManager.displayLoadingAnim();
+  displayManager.startLoading();
   hexapod.init();
-  displayManager.displayIdleAnim();
+  displayManager.stopLoading();
+  displayManager.faceAnimator->setState(FaceState::FACE_STILL);
+  displayManager.faceAnimator->setExpression(FaceExpression::FACE_SLEEP);
 }
 
-void loop()
-{
-}
+void loop() {}

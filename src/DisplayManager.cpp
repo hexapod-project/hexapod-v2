@@ -23,6 +23,7 @@ void DisplayManager::init()
 {
     this->display->begin(OLED_I2C_ADDRESS);
     this->display->clearDisplay();
+    this->faceAnimator = new FaceAnimator(this->display);
 }
 
 void DisplayManager::runAnim(int16_t screen_w, int16_t screen_h, int16_t screen_x_offset, int16_t screen_y_offset, const unsigned char *frames[], int frameCount, uint16_t color, uint8_t fps, uint16_t maxDelay)
@@ -55,24 +56,23 @@ void DisplayManager::runAnim(int16_t screen_w, int16_t screen_h, int16_t screen_
     }
 }
 
-void DisplayManager::clearFaceAnimationTask()
+void DisplayManager::stopLoading()
 {
-    if (faceAnimationTaskHandle != NULL)
+    if (loadingTaskHandle != NULL)
     {
-        vTaskDelete(faceAnimationTaskHandle);
-        faceAnimationTaskHandle = NULL;
+        vTaskDelete(loadingTaskHandle);
+        loadingTaskHandle = NULL;
         currentDisplayMode = DisplayMode::NONE;
     }
 }
 
-void DisplayManager::displayLoadingAnim()
+void DisplayManager::startLoading()
 {
     if (currentDisplayMode == DisplayMode::LOADING)
     {
         return; // Already displaying loading animation
     }
 
-    clearFaceAnimationTask();
     xTaskCreatePinnedToCore(
         [](void *param)
         {
@@ -97,128 +97,10 @@ void DisplayManager::displayLoadingAnim()
         2048,
         this,
         1,
-        &faceAnimationTaskHandle,
+        &loadingTaskHandle,
         1);
 
     currentDisplayMode = DisplayMode::LOADING;
-}
-
-void DisplayManager::displayIdleAnim()
-{
-    if (currentDisplayMode == DisplayMode::IDLE_FACE)
-    {
-        return; // Already displaying idle animation
-    }
-
-    clearFaceAnimationTask();
-    xTaskCreatePinnedToCore(
-        [](void *param)
-        {
-            DisplayManager *displayManager = static_cast<DisplayManager *>(param);
-            displayManager->runAnim(SCREEN_WIDTH, SCREEN_HEIGHT, 0, SCREEN_Y_OFFSET, idle, IDLE_FRAMES, SH110X_WHITE, 25, MAX_IDLE_DELAY);
-        },
-        "IdleAnimationTask",
-        2048,
-        this,
-        1,
-        &faceAnimationTaskHandle,
-        1);
-    currentDisplayMode = DisplayMode::IDLE_FACE;
-}
-
-void DisplayManager::displayHappyAnim()
-{
-    if (currentDisplayMode == DisplayMode::HAPPY)
-    {
-        return; // Already displaying happy animation
-    }
-
-    clearFaceAnimationTask();
-    xTaskCreatePinnedToCore(
-        [](void *param)
-        {
-            DisplayManager *displayManager = static_cast<DisplayManager *>(param);
-            displayManager->runAnim(SCREEN_WIDTH, SCREEN_HEIGHT, 0, SCREEN_Y_OFFSET, happy, HAPPY_FRAMES);
-        },
-        "HappyAnimationTask",
-        2048,
-        this,
-        1,
-        &faceAnimationTaskHandle,
-        1);
-    currentDisplayMode = DisplayMode::HAPPY;
-}
-
-void DisplayManager::displaySadAnim()
-{
-    if (currentDisplayMode == DisplayMode::SAD)
-    {
-        return; // Already displaying sad animation
-    }
-
-    clearFaceAnimationTask();
-    xTaskCreatePinnedToCore(
-        [](void *param)
-        {
-            DisplayManager *displayManager = static_cast<DisplayManager *>(param);
-            // TODO: Implement sad animation frames and call runAnim with sad frames
-            displayManager->runAnim(SCREEN_WIDTH, SCREEN_HEIGHT, 0, SCREEN_Y_OFFSET, angry, ANGRY_FRAMES);
-        },
-        "SadAnimationTask",
-        2048,
-        this,
-        1,
-        &faceAnimationTaskHandle,
-        1);
-    currentDisplayMode = DisplayMode::SAD;
-}
-
-void DisplayManager::displayAngryAnim()
-{
-    if (currentDisplayMode == DisplayMode::ANGRY)
-    {
-        return; // Already displaying angry animation
-    }
-
-    clearFaceAnimationTask();
-    xTaskCreatePinnedToCore(
-        [](void *param)
-        {
-            DisplayManager *displayManager = static_cast<DisplayManager *>(param);
-            displayManager->runAnim(SCREEN_WIDTH, SCREEN_HEIGHT, 0, SCREEN_Y_OFFSET, angry, ANGRY_FRAMES);
-        },
-        "AngryAnimationTask",
-        2048,
-        this,
-        1,
-        &faceAnimationTaskHandle,
-        1);
-
-    currentDisplayMode = DisplayMode::ANGRY;
-}
-
-void DisplayManager::displaySleepAnim()
-{
-    if (currentDisplayMode == DisplayMode::SLEEP)
-    {
-        return; // Already displaying sleep animation
-    }
-
-    clearFaceAnimationTask();
-    xTaskCreatePinnedToCore(
-        [](void *param)
-        {
-            DisplayManager *displayManager = static_cast<DisplayManager *>(param);
-            displayManager->runAnim(SCREEN_WIDTH, SCREEN_HEIGHT, 0, SCREEN_Y_OFFSET, sleepAnim, SLEEP_FRAMES);
-        },
-        "SleepAnimationTask",
-        2048,
-        this,
-        1,
-        &faceAnimationTaskHandle,
-        1);
-
-    currentDisplayMode = DisplayMode::SLEEP;
 }
 
 void DisplayManager::displayMenu()
