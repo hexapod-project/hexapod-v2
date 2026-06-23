@@ -34,7 +34,7 @@ enum FaceExpression
 
 enum FaceState
 {
-    FACE_NONE,
+    FACE_NONE,    
     FACE_IDLE,
     FACE_STILL
 };
@@ -57,12 +57,15 @@ private:
     Vec2 currEyeOffset = Vec2(0, 0);
     Vec2 nextEyeOffset = Vec2(0, 0);
     float tweenMultiplier = TWEEN_MULTIPLIER;
+    bool isHidden = false;
 
-    static void drawFaceTask(void *param);
     void drawFace();
-
-public:
+    
+    public:
     FaceAnimator(Adafruit_SH1106G *display);
+    void loop();
     void setExpression(FaceExpression expression);
     void setState(FaceState state);
+    void hide();
+    void show();
 };

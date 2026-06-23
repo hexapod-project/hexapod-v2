@@ -9,98 +9,98 @@ FaceAnimator::FaceAnimator(Adafruit_SH1106G *display)
     this->instance = this;
 }
 
-void FaceAnimator::drawFaceTask(void *param)
+void FaceAnimator::loop()
 {
-    while (true)
+    if (instance->isHidden)
     {
-        instance->display->clearDisplay();
-        instance->display->setTextColor(SH110X_WHITE);
-        instance->display->setTextSize(TEXT_SIZE);
-        instance->display->setCursor(0, 0);
-        ulong currMillis = millis();
-
-        if (instance->currentState == FaceState::FACE_NONE)
-        {
-            instance->display->display();
-            vTaskDelete(NULL);
-            return;
-        }
-
-        bool isEyesOpen = instance->currEyeHeight >= EYE_HEIGHT - 1;
-        bool isEyesClosed = instance->currEyeHeight <= CLOSED_EYE_HEIGHT + 1;
-        bool isEyesCentered = instance->currEyeOffset.magnitude() <= 0.1;
-        bool isEyesAtNextOffset = (instance->currEyeOffset - instance->nextEyeOffset).magnitude() <= 0.1;
-
-        if (instance->currentExpression != FaceExpression::FACE_SLEEP)
-        {
-            instance->tweenMultiplier = TWEEN_MULTIPLIER;
-            // Blinking
-            if (isEyesOpen && currMillis >= instance->nextBlinkMS)
-            {
-                instance->nextEyeHeight = CLOSED_EYE_HEIGHT;
-                instance->nextBlinkMS = currMillis + random(1, MAX_BLINK_INTERVAL_S) * 1000;
-            }
-            else if (isEyesClosed) // Instantly re-open eyes for the blinking effect
-            {
-                instance->nextEyeHeight = EYE_HEIGHT;
-            }
-        }
-        else
-        {
-            // Sleep
-            instance->tweenMultiplier = SLEEP_TWEEN_MULTIPLIER;
-            instance->nextEyeHeight = CLOSED_EYE_HEIGHT;
-            instance->nextEyeOffset.x = 0;
-
-            if (abs(instance->currEyeOffset.y - instance->nextEyeOffset.y) <= 0.01)
-            {
-                if (instance->nextEyeOffset.y == 0)
-                {
-                    instance->nextEyeOffset.y = 5;
-                }
-                else
-                {
-                    instance->nextEyeOffset.y = 0;
-                }
-            }
-        }
-
-        switch (instance->currentState)
-        {
-        case FaceState::FACE_IDLE:
-            // Moving eyes
-            if (isEyesAtNextOffset && currMillis >= instance->nextPosChangeMS)
-            {
-                if (isEyesCentered)
-                {
-                    instance->nextEyeOffset.x = random(-MAX_X_OFFSET, MAX_X_OFFSET);
-                    instance->nextEyeOffset.y = random(-MAX_Y_OFFSET, MAX_Y_OFFSET);
-                    instance->nextPosChangeMS = currMillis + MIN_POS_CHANGE_INTERVAL_S * 1000;
-                }
-                else
-                {
-                    instance->nextEyeOffset.x = 0;
-                    instance->nextEyeOffset.y = 0;
-                    instance->nextPosChangeMS = currMillis + random(MIN_POS_CHANGE_INTERVAL_S, MAX_POS_CHANGE_INTERVAL_S) * 1000;
-                }
-            }
-            break;
-        }
-
-        if (DEBUG_FACE)
-        {
-            instance->display->printf("ceh: %.3f,iseh: %d, x: %.2f, y: %.2f", instance->currEyeHeight, instance->currEyeHeight == instance->nextEyeHeight, instance->currEyeOffset.x, instance->currEyeOffset.y);
-        }
-
-        instance->drawFace();
-
-        instance->display->display();
+        return;
     }
+
+    instance->display->clearDisplay();
+    instance->display->setTextColor(SH110X_WHITE);
+    instance->display->setTextSize(TEXT_SIZE);
+    instance->display->setCursor(0, 0);
+    ulong currMillis = millis();
+
+    if (instance->currentState == FaceState::FACE_NONE)
+    {
+        instance->display->display();
+        return;
+    }
+
+    bool isEyesOpen = instance->currEyeHeight >= EYE_HEIGHT - 1;
+    bool isEyesClosed = instance->currEyeHeight <= CLOSED_EYE_HEIGHT + 1;
+    bool isEyesCentered = instance->currEyeOffset.magnitude() <= 0.1;
+    bool isEyesAtNextOffset = (instance->currEyeOffset - instance->nextEyeOffset).magnitude() <= 0.1;
+
+    if (instance->currentExpression != FaceExpression::FACE_SLEEP)
+    {
+        instance->tweenMultiplier = TWEEN_MULTIPLIER;
+        // Blinking
+        if (isEyesOpen && currMillis >= instance->nextBlinkMS)
+        {
+            instance->nextEyeHeight = CLOSED_EYE_HEIGHT;
+            instance->nextBlinkMS = currMillis + random(1, MAX_BLINK_INTERVAL_S) * 1000;
+        }
+        else if (isEyesClosed) // Instantly re-open eyes for the blinking effect
+        {
+            instance->nextEyeHeight = EYE_HEIGHT;
+        }
+    }
+    else
+    {
+        // Sleep
+        instance->tweenMultiplier = SLEEP_TWEEN_MULTIPLIER;
+        instance->nextEyeHeight = CLOSED_EYE_HEIGHT;
+        instance->nextEyeOffset.x = 0;
+
+        if (abs(instance->currEyeOffset.y - instance->nextEyeOffset.y) <= 0.01)
+        {
+            if (instance->nextEyeOffset.y == 0)
+            {
+                instance->nextEyeOffset.y = 5;
+            }
+            else
+            {
+                instance->nextEyeOffset.y = 0;
+            }
+        }
+    }
+
+    switch (instance->currentState)
+    {
+    case FaceState::FACE_IDLE:
+        // Moving eyes
+        if (isEyesAtNextOffset && currMillis >= instance->nextPosChangeMS)
+        {
+            if (isEyesCentered)
+            {
+                instance->nextEyeOffset.x = random(-MAX_X_OFFSET, MAX_X_OFFSET);
+                instance->nextEyeOffset.y = random(-MAX_Y_OFFSET, MAX_Y_OFFSET);
+                instance->nextPosChangeMS = currMillis + MIN_POS_CHANGE_INTERVAL_S * 1000;
+            }
+            else
+            {
+                instance->nextEyeOffset.x = 0;
+                instance->nextEyeOffset.y = 0;
+                instance->nextPosChangeMS = currMillis + random(MIN_POS_CHANGE_INTERVAL_S, MAX_POS_CHANGE_INTERVAL_S) * 1000;
+            }
+        }
+        break;
+    }
+
+    if (DEBUG_FACE)
+    {
+        instance->display->printf("ceh: %.3f,iseh: %d, x: %.2f, y: %.2f", instance->currEyeHeight, instance->currEyeHeight == instance->nextEyeHeight, instance->currEyeOffset.x, instance->currEyeOffset.y);
+    }
+
+    instance->drawFace();
+
+    instance->display->display();
 }
 
 void FaceAnimator::drawFace()
 {
-
     if (currEyeHeight != nextEyeHeight)
     {
         currEyeHeight += (nextEyeHeight - currEyeHeight) * TWEEN_MULTIPLIER; // Simple linear interpolation for blink animation
@@ -181,18 +181,17 @@ void FaceAnimator::setState(FaceState state)
         return;
     }
 
-    // Start task if the current state is NONE since no task was started yet
-    if (currentState == FaceState::FACE_NONE && state != FaceState::FACE_NONE)
-    {
-        xTaskCreatePinnedToCore(
-            drawFaceTask,
-            "FaceDrawTask",
-            2048,
-            this,
-            1,
-            NULL,
-            1);
-    }
-
     this->currentState = state;
+}
+
+void FaceAnimator::hide()
+{
+    display->clearDisplay();
+    display->display();
+    isHidden = true;
+}
+
+void FaceAnimator::show()
+{
+    isHidden = false;
 }

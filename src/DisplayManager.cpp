@@ -2,10 +2,6 @@
 #include "Utils.h"
 #include <Adafruit_GFX.h>
 #include <Wire.h>
-#include "Animations/IdleAnim.h"
-#include "Animations/HappyAnim.h"
-#include "Animations/AngryAnim.h"
-#include "Animations/SleepAnim.h"
 
 DisplayManager *DisplayManager::instance = NULL;
 
@@ -39,6 +35,11 @@ void DisplayManager::runAnim(int16_t screen_w, int16_t screen_h, int16_t screen_
     int delayTime = pdMS_TO_TICKS(1000 / fps); // Calculate delay time in milliseconds based on FPS
     while (true)
     {
+        if (this->currentDisplayMode != DisplayMode::HOME)
+        {
+            return;
+        }
+
         this->display->clearDisplay();
         this->display->drawBitmap(screen_x_offset, screen_y_offset, frames[frameIndex], screen_w, screen_h, color);
         this->display->display();
@@ -62,7 +63,7 @@ void DisplayManager::stopLoading()
     {
         vTaskDelete(loadingTaskHandle);
         loadingTaskHandle = NULL;
-        currentDisplayMode = DisplayMode::NONE;
+        currentDisplayMode = DisplayMode::HOME;
     }
 }
 
@@ -85,7 +86,7 @@ void DisplayManager::startLoading()
                 {
                     if (i != quarter)
                     {
-                        displayManager->display->drawCircleHelper(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + SCREEN_Y_OFFSET, 10, 1 << i, SH110X_WHITE);
+                        displayManager->display->drawCircleHelper(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, 10, 1 << i, SH110X_WHITE);
                     }
                 }
                 displayManager->display->display();
@@ -103,19 +104,92 @@ void DisplayManager::startLoading()
     currentDisplayMode = DisplayMode::LOADING;
 }
 
-void DisplayManager::displayMenu()
+void DisplayManager::showMenu(String title, std::vector<String> options, int menuCursor)
 {
-    if (currentDisplayMode == DisplayMode::SETTINGS_MENU)
+    if (currentDisplayMode != DisplayMode::MENU)
     {
-        return; // Already displaying menu
+        faceAnimator->hide();
+        currentDisplayMode = DisplayMode::MENU;
     }
 
-    this->display->clearDisplay();
-    this->display->setTextSize(1);
-    this->display->setTextColor(SH110X_WHITE);
-    this->display->setCursor(0, 0);
-    this->display->println("Menu");
-    this->display->display();
+    display->clearDisplay();
 
-    currentDisplayMode = DisplayMode::SETTINGS_MENU;
+    display->setTextSize(1);
+    display->setTextColor(SH110X_WHITE);    
+    
+    short subMenuIndex = 0;
+    short subMenusSize = options.size();
+    int selectorRectYBtm = (menuCursor + 1) * TEXT_PIXELS_PER_UNIT + TEXT_PIXELS_PER_UNIT;
+    int offsetY = selectorRectYBtm/SCREEN_HEIGHT * TEXT_PIXELS_PER_UNIT;
+    display->setCursor(display->getCursorX(), TEXT_PIXELS_PER_UNIT + 2 - offsetY);
+    for (subMenuIndex = 0; subMenuIndex < subMenusSize; subMenuIndex++)
+    {
+        if (subMenuIndex == menuCursor)
+        {
+            int16_t rectX = 0;
+            int16_t rectY = display->getCursorY();      
+            int16_t rectHeight = TEXT_PIXELS_PER_UNIT;      
+            display->fillRect(rectX, rectY, SCREEN_WIDTH, rectHeight, SH110X_WHITE);
+            display->setTextColor(SH110X_BLACK);
+        }
+        else
+        {
+            display->setTextColor(SH110X_WHITE);
+        }
+        
+        display->print("> ");
+        display->println(options[subMenuIndex]);
+    }
+
+    // Write title
+    display->fillRect(0, 0, SCREEN_WIDTH, TEXT_PIXELS_PER_UNIT + 2, SH110X_BLACK);
+    display->setCursor(1, 1);
+    display->setTextColor(SH110X_WHITE);
+    display->println(title);
+
+    display->display();
+}
+
+void DisplayManager::exitMenu()
+{
+    if (currentDisplayMode != DisplayMode::MENU)
+    {
+        return;
+    }
+
+    currentDisplayMode = DisplayMode::HOME;
+    display->clearDisplay();
+    display->display();
+    faceAnimator->show();
+    Serial.println("Exit menu");
+}
+
+void DisplayManager::showIdle()
+{
+    faceAnimator->setState(FaceState::FACE_IDLE);
+    faceAnimator->setExpression(FaceExpression::FACE_NEUTRAL);
+}
+
+void DisplayManager::changeMood(FaceExpression expression)
+{
+    switch (expression)
+    {
+    case FaceExpression::FACE_ANGRY:
+    case FaceExpression::FACE_HAPPY:
+    case FaceExpression::FACE_SAD:
+    case FaceExpression::FACE_NEUTRAL:
+    case FaceExpression::FACE_TIRED:
+        faceAnimator->setState(FaceState::FACE_IDLE);
+        break;
+    case FaceExpression::FACE_SLEEP:
+        faceAnimator->setState(FaceState::FACE_STILL);
+        break;
+    default:
+        break;
+    }
+}
+
+void DisplayManager::loop()
+{
+    faceAnimator->loop();
 }

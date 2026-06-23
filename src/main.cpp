@@ -9,11 +9,13 @@
 #include "Calibrator.h"
 #include "Utils.h"
 #include "DisplayManager.h"
+#include "MenuController.h"
 
 bool isConnected = false;
 
 int bluetoothMessage;
 DisplayManager displayManager = DisplayManager();
+MenuController menuController = MenuController(&displayManager);
 Hexapod hexapod = Hexapod();
 HexapodBLE hexapodBLE = HexapodBLE();
 Calibrator calibrator = Calibrator(&hexapod);
@@ -173,6 +175,7 @@ class HexapodRestCharacteristicCallbacks : public BLECharacteristicCallbacks
   }
 };
 
+
 void setup()
 {
   Serial.begin(115200);
@@ -193,8 +196,11 @@ void setup()
   displayManager.startLoading();
   hexapod.init();
   displayManager.stopLoading();
-  displayManager.faceAnimator->setState(FaceState::FACE_STILL);
-  displayManager.faceAnimator->setExpression(FaceExpression::FACE_SLEEP);
+  displayManager.showIdle();
+  menuController.init();
 }
 
-void loop() {}
+void loop() {  
+  menuController.loop();
+  displayManager.loop();
+}

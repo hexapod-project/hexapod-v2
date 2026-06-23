@@ -16,8 +16,6 @@
 #define SERVO_ANGLES_MAX 75
 #define PWM_FREQ 60
 
-#define SCREEN_Y_OFFSET 5
-#define SCREEN_X_OFFSET 0
 #define SCREEN_WIDTH 128  // OLED display width, in pixels
 #define SCREEN_HEIGHT 64  // OLED display height, in pixels
 #define OLED_RESET -1    // Reset pin # (or -1 if sharing Arduino reset pin)
