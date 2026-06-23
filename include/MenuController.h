@@ -11,6 +11,7 @@ enum MenuScreen
     MENU_MAIN,
     MENU_MOOD,
     MENU_CALIBRATE,
+    MENU_SLEEP,
     MENU_EXIT,
     MENU_BACK,
 
@@ -36,11 +37,14 @@ public:
     MenuScreen screen;
     MenuScreen prevScreen = MenuScreen::MENU_MAIN;
 
+    std::function<void()> onPress;
+
     MenuOption();
 
     MenuOption(MenuScreen _screen, MenuScreen _prevScreen): screen(_screen), prevScreen(_prevScreen) {}    
 
     MenuOption(MenuScreen _screen): screen(_screen) {}    
+    MenuOption(MenuScreen _screen, std::function<void()> _onPress): screen(_screen), onPress(_onPress) {}    
 };
 
 class MenuController

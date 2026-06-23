@@ -187,6 +187,7 @@ void DisplayManager::changeMood(FaceExpression expression)
     default:
         break;
     }
+    faceAnimator->setExpression(expression);
 }
 
 void DisplayManager::loop()

@@ -1,10 +1,18 @@
 #include "MenuController.h"
 #include <Arduino.h>
 
+void changeMood(FaceExpression expression)
+{
+    DisplayManager *displayManager = DisplayManager::getInstance();
+    displayManager->changeMood(expression);
+    displayManager->exitMenu();
+}
+
 std::map<MenuScreen, String> MENU_LABELS = {
     {MENU_MAIN, "Main"},
     {MENU_MOOD, "Change Mood"},
     {MENU_CALIBRATE, "Calibrate"},
+    {MENU_SLEEP, "Sleep"},
     {MENU_EXIT, "Exit"},
     {MENU_BACK, "Back"},
 
@@ -26,14 +34,20 @@ std::map<MenuScreen, std::vector<MenuOption>> MENU_OPTIONS = {
     {MenuScreen::MENU_MAIN, {
                                 MenuOption(MenuScreen::MENU_MOOD),
                                 MenuOption(MenuScreen::MENU_CALIBRATE),
+                                MenuOption(MenuScreen::MENU_SLEEP, []() {changeMood(FaceExpression::FACE_SLEEP);}),
                                 MenuOption(MenuScreen::MENU_EXIT),
                             }},
     {MenuScreen::MENU_MOOD, {
-                                MenuOption(MenuScreen::MENU_MOOD_NEUTRAL),
-                                MenuOption(MenuScreen::MENU_MOOD_HAPPY),
-                                MenuOption(MenuScreen::MENU_MOOD_SAD),
-                                MenuOption(MenuScreen::MENU_MOOD_ANGRY),
-                                MenuOption(MenuScreen::MENU_MOOD_TIRED),
+                                MenuOption(MenuScreen::MENU_MOOD_NEUTRAL, []()
+                                           { changeMood(FaceExpression::FACE_NEUTRAL); }),
+                                MenuOption(MenuScreen::MENU_MOOD_HAPPY, []()
+                                           { changeMood(FaceExpression::FACE_HAPPY); }),
+                                MenuOption(MenuScreen::MENU_MOOD_SAD, []()
+                                           { changeMood(FaceExpression::FACE_SAD); }),
+                                MenuOption(MenuScreen::MENU_MOOD_ANGRY, []()
+                                           { changeMood(FaceExpression::FACE_ANGRY); }),
+                                MenuOption(MenuScreen::MENU_MOOD_TIRED, []()
+                                           { changeMood(FaceExpression::FACE_TIRED); }),
                                 MenuOption(MenuScreen::MENU_BACK, MenuScreen::MENU_MAIN),
                             }},
     {MenuScreen::MENU_CALIBRATE, {
@@ -88,7 +102,12 @@ void MenuController::onKnobPress()
     else
     {
         MenuOption selectedSubMenu = currSubMenus[submenuCursor];
-        if (selectedSubMenu.screen == MenuScreen::MENU_EXIT)
+        if (selectedSubMenu.onPress != NULL)
+        {
+            selectedSubMenu.onPress();
+            return;
+        }
+        else if (selectedSubMenu.screen == MenuScreen::MENU_EXIT)
         {
             displayManager->exitMenu();
             return;
@@ -104,7 +123,7 @@ void MenuController::onKnobPress()
             currMenuScreen = selectedSubMenu.screen;
         }
     }
-    
+
     submenuCursor = 0;
     currSubMenus = MENU_OPTIONS[currMenuScreen];
     subMenuLabels.clear();
