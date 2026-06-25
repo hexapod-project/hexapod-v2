@@ -31,3 +31,6 @@ extern BLECharacteristic PWM_PULSE_CHARACTERISTIC;
 extern BLECharacteristic MOVE_SERVO_CHARACTERISTIC;
 
 #define SERVO_PULSE_INTERVAL 750
+
+#define MIN_PWM 500
+#define MAX_PWM 2500

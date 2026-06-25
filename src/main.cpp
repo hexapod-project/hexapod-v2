@@ -15,10 +15,10 @@ bool isConnected = false;
 
 int bluetoothMessage;
 DisplayManager displayManager = DisplayManager();
-MenuController menuController = MenuController(&displayManager);
 Hexapod hexapod = Hexapod();
 HexapodBLE hexapodBLE = HexapodBLE();
 Calibrator calibrator = Calibrator(&hexapod);
+MenuController menuController = MenuController(&displayManager, &calibrator);
 
 class HexapodBLEServerCallbacks : public BLEServerCallbacks
 {

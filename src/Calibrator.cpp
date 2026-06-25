@@ -5,9 +5,17 @@
 
 const char *CALIBRATION_NAMESPACE = "calibration";
 
+Calibrator *Calibrator::instance = NULL;
+
 Calibrator::Calibrator(Hexapod *hexapod)
 {
     this->hexapod = hexapod;
+    this->instance = this;
+}
+
+Calibrator *Calibrator::getInstance()
+{
+    return instance;
 }
 
 void Calibrator::init()
@@ -81,4 +89,20 @@ uint8_t *Calibrator::getCalibrationSettings()
     preferences.end();
 
     return shortsToByteArray(pulseArray, SERVO_COUNT);
+}
+
+uint16_t Calibrator::getPWMPulse(int servoIndex)
+{
+    preferences.begin(CALIBRATION_NAMESPACE, true);
+
+    uint16_t pulse = preferences.getUShort(std::to_string(servoIndex).c_str());
+
+    if (pulse == 0)
+    {
+        pulse = SERVOS[servoIndex + 1]->getAveragePulse();
+    }
+    
+    preferences.end();
+
+    return pulse;
 }

@@ -11,6 +11,7 @@
 class Hexapod
 {
 private:
+    static Hexapod *instance;
     HexapodMode mode = HexapodMode::CONTROLLER;
     bool _isRest = false;
 
@@ -27,6 +28,8 @@ private:
     void initCalibrateMode();
 
 public:
+    Hexapod();
+    static Hexapod *getInstance();
     void init();
     void startWalk(double walkDirection);
     // This is called by GaitManager's walk cycle

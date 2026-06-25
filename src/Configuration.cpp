@@ -26,12 +26,12 @@ std::map<int, Servo *> SERVOS = {
 };
 
 std::map<int, Leg *> LEGS = {
-    {LegType::LEFT_FRONT, new Leg(120, SERVOS[1], SERVOS[2], SERVOS[3])},
-    {LegType::LEFT_MID, new Leg(180, SERVOS[4], SERVOS[5], SERVOS[6])},
-    {LegType::LEFT_BACK, new Leg(-120, SERVOS[7], SERVOS[8], SERVOS[9])},
-    {LegType::RIGHT_FRONT, new Leg(60, SERVOS[10], SERVOS[11], SERVOS[12])},
-    {LegType::RIGHT_MID, new Leg(0, SERVOS[13], SERVOS[14], SERVOS[15])},
-    {LegType::RIGHT_BACK, new Leg(-60, SERVOS[16], SERVOS[17], SERVOS[18])},
+    {LegType::LEFT_FRONT, new Leg(120, SERVOS[Joint::LEFT_FRONT_COXA], SERVOS[Joint::LEFT_FRONT_FEMUR], SERVOS[Joint::LEFT_FRONT_TIBIA])},
+    {LegType::LEFT_MID, new Leg(180, SERVOS[Joint::LEFT_MID_COXA], SERVOS[Joint::LEFT_MID_FEMUR], SERVOS[Joint::LEFT_MID_TIBIA])},
+    {LegType::LEFT_BACK, new Leg(-120, SERVOS[Joint::LEFT_BACK_COXA], SERVOS[Joint::LEFT_BACK_FEMUR], SERVOS[Joint::LEFT_BACK_TIBIA])},
+    {LegType::RIGHT_FRONT, new Leg(60, SERVOS[Joint::RIGHT_FRONT_COXA], SERVOS[Joint::RIGHT_FRONT_COXA], SERVOS[Joint::RIGHT_FRONT_COXA])},
+    {LegType::RIGHT_MID, new Leg(0, SERVOS[Joint::RIGHT_MID_COXA], SERVOS[Joint::RIGHT_MID_FEMUR], SERVOS[Joint::RIGHT_MID_TIBIA])},
+    {LegType::RIGHT_BACK, new Leg(-60, SERVOS[Joint::RIGHT_BACK_COXA], SERVOS[Joint::RIGHT_BACK_FEMUR], SERVOS[Joint::RIGHT_BACK_TIBIA])},
 };
 
 std::map<int, Vec3 *> FEET_POSITIONS_REST = {

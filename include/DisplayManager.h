@@ -7,13 +7,6 @@
 
 #define TEXT_PIXELS_PER_UNIT 8
 
-enum DisplayMode
-{
-    HOME,
-    LOADING,
-    MENU
-};
-
 class DisplayManager
 {
 private:
@@ -23,6 +16,7 @@ private:
     FaceAnimator *faceAnimator;
 
     void runAnim(int16_t screen_w, int16_t screen_h, int16_t screen_x_offset, int16_t screen_y_offset, const unsigned char *frames[], int frameCount, uint16_t color = SH110X_WHITE, uint8_t fps = 25, uint16_t maxDelay = 0);
+    void writeMenuTitle(String title);
 
 public:
     DisplayMode currentDisplayMode = DisplayMode::HOME;
@@ -37,4 +31,6 @@ public:
     void exitMenu();
     void showIdle();
     void changeMood(FaceExpression expression);
+    void showCalibratorSelector(String title, LegType legCursor);
+    void showCalibratorSetter(String title, int pwm);
 };

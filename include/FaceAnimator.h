@@ -1,5 +1,6 @@
 #include <Adafruit_SH110X.h>
 #include "Vec2.h"
+#include "Enums.h"
 
 #define EYE_WIDTH 30.0
 #define EYE_HEIGHT 30.0
@@ -21,23 +22,6 @@
 #define SLEEP_TWEEN_MULTIPLIER 0.2
 #define TEXT_SIZE 1
 #define DEBUG_FACE false
-
-enum FaceExpression
-{
-    FACE_NEUTRAL,
-    FACE_HAPPY,
-    FACE_SAD,
-    FACE_ANGRY,
-    FACE_TIRED,
-    FACE_SLEEP
-};
-
-enum FaceState
-{
-    FACE_NONE,    
-    FACE_IDLE,
-    FACE_STILL
-};
 
 class FaceAnimator
 {

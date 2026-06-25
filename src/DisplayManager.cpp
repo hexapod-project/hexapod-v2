@@ -104,6 +104,15 @@ void DisplayManager::startLoading()
     currentDisplayMode = DisplayMode::LOADING;
 }
 
+void DisplayManager::writeMenuTitle(String title)
+{
+    display->setTextSize(1);
+    display->fillRect(0, 0, SCREEN_WIDTH, TEXT_PIXELS_PER_UNIT + 2, SH110X_BLACK);
+    display->setCursor(1, 1);
+    display->setTextColor(SH110X_WHITE);
+    display->println(title);
+}
+
 void DisplayManager::showMenu(String title, std::vector<String> options, int menuCursor)
 {
     if (currentDisplayMode != DisplayMode::MENU)
@@ -115,20 +124,20 @@ void DisplayManager::showMenu(String title, std::vector<String> options, int men
     display->clearDisplay();
 
     display->setTextSize(1);
-    display->setTextColor(SH110X_WHITE);    
-    
+    display->setTextColor(SH110X_WHITE);
+
     short subMenuIndex = 0;
     short subMenusSize = options.size();
-    int selectorRectYBtm = (menuCursor + 1) * TEXT_PIXELS_PER_UNIT + TEXT_PIXELS_PER_UNIT;
-    int offsetY = selectorRectYBtm/SCREEN_HEIGHT * TEXT_PIXELS_PER_UNIT;
+    int selectorRectYBtm = (menuCursor + 1) * TEXT_PIXELS_PER_UNIT + TEXT_PIXELS_PER_UNIT; //Include title height
+    int offsetY = max(0, selectorRectYBtm - SCREEN_HEIGHT + TEXT_PIXELS_PER_UNIT);
     display->setCursor(display->getCursorX(), TEXT_PIXELS_PER_UNIT + 2 - offsetY);
     for (subMenuIndex = 0; subMenuIndex < subMenusSize; subMenuIndex++)
     {
         if (subMenuIndex == menuCursor)
         {
             int16_t rectX = 0;
-            int16_t rectY = display->getCursorY();      
-            int16_t rectHeight = TEXT_PIXELS_PER_UNIT;      
+            int16_t rectY = display->getCursorY();
+            int16_t rectHeight = TEXT_PIXELS_PER_UNIT;
             display->fillRect(rectX, rectY, SCREEN_WIDTH, rectHeight, SH110X_WHITE);
             display->setTextColor(SH110X_BLACK);
         }
@@ -136,16 +145,13 @@ void DisplayManager::showMenu(String title, std::vector<String> options, int men
         {
             display->setTextColor(SH110X_WHITE);
         }
-        
+
         display->print("> ");
         display->println(options[subMenuIndex]);
     }
 
     // Write title
-    display->fillRect(0, 0, SCREEN_WIDTH, TEXT_PIXELS_PER_UNIT + 2, SH110X_BLACK);
-    display->setCursor(1, 1);
-    display->setTextColor(SH110X_WHITE);
-    display->println(title);
+    writeMenuTitle(title);
 
     display->display();
 }
@@ -188,6 +194,26 @@ void DisplayManager::changeMood(FaceExpression expression)
         break;
     }
     faceAnimator->setExpression(expression);
+}
+
+void DisplayManager::showCalibratorSetter(String title, int pwm)
+{
+    display->clearDisplay();
+
+    writeMenuTitle(title);
+
+    int16_t textX1 = 0;
+    int16_t textY1 = 0;
+    u_int16_t textWidth = 0;
+    u_int16_t textHeight = 0;
+    display->setTextSize(3);
+    display->getTextBounds(String(pwm), 0, 0, &textX1, &textY1, &textWidth, &textHeight);
+    display->setCursor(HALF_SCREEN_WIDTH - textWidth / 2, HALF_SCREEN_HEIGHT - textHeight / 2);
+    display->println(pwm);
+
+    display->display();
+
+    currentDisplayMode = DisplayMode::CALIBRATOR_SETTER;
 }
 
 void DisplayManager::loop()

@@ -2,8 +2,21 @@
 #include "Configuration.h"
 #include "Utils.h"
 
+Hexapod *Hexapod::instance = NULL;
+
+Hexapod::Hexapod()
+{
+    this->instance = this;
+}
+
+Hexapod *Hexapod::getInstance()
+{
+    return instance;
+}
+
 void Hexapod::init()
 {
+
     servoDriverLeft->begin();
     servoDriverLeft->setPWMFreq(PWM_FREQ);
 
