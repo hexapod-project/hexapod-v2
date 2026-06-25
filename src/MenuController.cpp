@@ -38,11 +38,68 @@ std::map<MenuScreen, String> MENU_LABELS = {
     {MENU_CALIBRATE_RB_TIBIA, "Right Back Tibia"},
 };
 
+std::map<Joint, String> JOINT_LABELS = {
+    {Joint::LEFT_FRONT_COXA, "Calibrate LF Coxa"},
+    {Joint::LEFT_MID_COXA, "Calibrate LM Coxa"},
+    {Joint::LEFT_BACK_COXA, "Calibrate LB Coxa"},
+    {Joint::RIGHT_FRONT_COXA, "Calibrate RF Coxa"},
+    {Joint::RIGHT_MID_COXA, "Calibrate RM Coxa"},
+    {Joint::RIGHT_BACK_COXA, "Calibrate RB Coxa"},
+    {Joint::LEFT_FRONT_FEMUR, "Calibrate LF Femur"},
+    {Joint::LEFT_MID_FEMUR, "Calibrate LM Femur"},
+    {Joint::LEFT_BACK_FEMUR, "Calibrate LB Femur"},
+    {Joint::RIGHT_FRONT_FEMUR, "Calibrate RF Femur"},
+    {Joint::RIGHT_MID_FEMUR, "Calibrate RM Femur"},
+    {Joint::RIGHT_BACK_FEMUR, "Calibrate RB Femur"},
+    {Joint::LEFT_FRONT_TIBIA, "Calibrate LF Tibia"},
+    {Joint::LEFT_MID_TIBIA, "Calibrate LM Tibia"},
+    {Joint::LEFT_BACK_TIBIA, "Calibrate LB Tibia"},
+    {Joint::RIGHT_FRONT_TIBIA, "Calibrate RF Tibia"},
+    {Joint::RIGHT_MID_TIBIA, "Calibrate RM Tibia"},
+    {Joint::RIGHT_BACK_TIBIA, "Calibrate RB Tibia"},
+};
+
+const Joint CALIBRATE_JOINT_ORDERS[] = {
+    Joint::RIGHT_FRONT_COXA,
+    Joint::RIGHT_FRONT_FEMUR,
+    Joint::RIGHT_FRONT_TIBIA,
+    Joint::RIGHT_MID_COXA,
+    Joint::RIGHT_MID_FEMUR,
+    Joint::RIGHT_MID_TIBIA,
+    Joint::RIGHT_BACK_COXA,
+    Joint::RIGHT_BACK_FEMUR,
+    Joint::RIGHT_BACK_TIBIA,
+    Joint::LEFT_BACK_TIBIA,
+    Joint::LEFT_BACK_FEMUR,
+    Joint::LEFT_BACK_COXA,
+    Joint::LEFT_MID_TIBIA,
+    Joint::LEFT_MID_FEMUR,
+    Joint::LEFT_MID_COXA,
+    Joint::LEFT_FRONT_TIBIA,
+    Joint::LEFT_FRONT_FEMUR,
+    Joint::LEFT_FRONT_COXA,};
+
 void changeMood(FaceExpression expression)
 {
     DisplayManager *displayManager = DisplayManager::getInstance();
+
     displayManager->changeMood(expression);
     displayManager->exitMenu();
+}
+
+void openCalibratorSelector(int jointIndex = 1)
+{
+    MenuController *menuController = MenuController::getInstance();
+    DisplayManager *displayManager = DisplayManager::getInstance();
+
+    menuController->setScreen(MENU_CALIBRATE);
+    menuController->setCursorValue(jointIndex);
+
+    if (jointIndex > 0)
+    {
+        Joint joint = CALIBRATE_JOINT_ORDERS[jointIndex - 1];
+        displayManager->showCalibratorSelector(JOINT_LABELS[joint], joint);
+    }
 }
 
 void openCalibratorSetter(MenuScreen screen, Joint joint)
@@ -65,7 +122,8 @@ std::map<MenuScreen, std::vector<MenuOption>> MENU_OPTIONS = {
         MenuScreen::MENU_MAIN,
         {
             MenuOption(MenuScreen::MENU_MOOD),
-            MenuOption(MenuScreen::MENU_CALIBRATE),
+            MenuOption(MenuScreen::MENU_CALIBRATE, []()
+                       { openCalibratorSelector(); }),
             MenuOption(MenuScreen::MENU_SLEEP, []()
                        { changeMood(FaceExpression::FACE_SLEEP); }),
             MenuOption(MenuScreen::MENU_EXIT),
@@ -90,6 +148,7 @@ std::map<MenuScreen, std::vector<MenuOption>> MENU_OPTIONS = {
     {
         MenuScreen::MENU_CALIBRATE,
         {// Left
+         MenuOption(MenuScreen::MENU_BACK),
          MenuOption(MenuScreen::MENU_CALIBRATE_LF_COXA, []()
                     { openCalibratorSetter(MenuScreen::MENU_CALIBRATE_LF_COXA, Joint::LEFT_FRONT_COXA); }),
          MenuOption(MenuScreen::MENU_CALIBRATE_LF_FEMUR, []()
@@ -192,7 +251,8 @@ void MenuController::onKnobPress()
     }
     else if (displayManager->currentDisplayMode == DisplayMode::CALIBRATOR_SETTER)
     {
-        currMenuScreen = MenuScreen::MENU_CALIBRATE;
+        openCalibratorSelector((Joint)cursorValue);
+        return;
     }
     else
     {
@@ -209,12 +269,9 @@ void MenuController::onKnobPress()
         }
         else if (selectedSubMenu.screen == MenuScreen::MENU_BACK)
         {
-            if (currMenuScreen == MenuScreen::MENU_CALIBRATE)
+            if (Hexapod::getInstance()->getMode() == HexapodMode::CALIBRATE)
             {
-                if (Hexapod::getInstance()->getMode() == HexapodMode::CALIBRATE)
-                {
-                    Hexapod::getInstance()->switchMode(HexapodMode::CONTROLLER);
-                }
+                Hexapod::getInstance()->switchMode(HexapodMode::CONTROLLER);
             }
 
             // Go back to the prev screen
@@ -251,6 +308,14 @@ void MenuController::onKnobTurn(bool clockwise)
     if (clockwise)
     {
         cursorValue++;
+
+        if (displayManager->currentDisplayMode == DisplayMode::CALIBRATOR_SELECTOR)
+        {
+            if (cursorValue > 18)
+            {
+                cursorValue = 0;
+            }
+        }
     }
     else
     {
@@ -258,10 +323,23 @@ void MenuController::onKnobTurn(bool clockwise)
         {
             cursorValue--;
         }
+        else if (displayManager->currentDisplayMode == DisplayMode::CALIBRATOR_SELECTOR)
+        {
+            cursorValue = 18;
+        }
     }
 
     switch (displayManager->currentDisplayMode)
     {
+    case DisplayMode::CALIBRATOR_SELECTOR:         
+        if (cursorValue > 0)
+        {
+            Joint joint = CALIBRATE_JOINT_ORDERS[cursorValue - 1];
+            displayManager->showCalibratorSelector(JOINT_LABELS[joint], joint);
+        } else {
+            displayManager->showCalibratorSelector("Back to Menu", 0);
+        }
+        break;
     case DisplayMode::CALIBRATOR_SETTER:
         cursorValue = min(max(cursorValue, (unsigned int)MIN_PWM), (unsigned int)MAX_PWM);
         calibrator->setPWMPulse(selectedJoint - 1, cursorValue);

@@ -12,10 +12,16 @@ class DisplayManager
 private:
     static DisplayManager *instance;
     Adafruit_SH1106G *display = new Adafruit_SH1106G(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
-    TaskHandle_t loadingTaskHandle;
+    TaskHandle_t loadingTaskHandle, animTaskHandle;
     FaceAnimator *faceAnimator;
 
-    void runAnim(int16_t screen_w, int16_t screen_h, int16_t screen_x_offset, int16_t screen_y_offset, const unsigned char *frames[], int frameCount, uint16_t color = SH110X_WHITE, uint8_t fps = 25, uint16_t maxDelay = 0);
+    int currCursorValue = 0;
+    ulong startTime = 0;
+    String currTitle = "";
+
+    void startAnim(int16_t screen_w, int16_t screen_h, int16_t screen_x_offset, int16_t screen_y_offset, const unsigned char *frames[], int frameCount, uint16_t color = SH110X_WHITE, uint8_t fps = 25, uint16_t maxDelay = 0);
+    void runAnimTask(int16_t screen_w, int16_t screen_h, int16_t screen_x_offset, int16_t screen_y_offset, const unsigned char *frames[], int frameCount, uint16_t color = SH110X_WHITE, uint8_t fps = 25, uint16_t maxDelay = 0);
+    void stopAnim();
     void writeMenuTitle(String title);
 
 public:
@@ -27,10 +33,10 @@ public:
     void init();
     void startLoading();
     void stopLoading();
-    void showMenu(String title, std::vector<String> options, int submenuCursor);    
+    void showMenu(String title, std::vector<String> options, int submenuCursor);
     void exitMenu();
     void showIdle();
     void changeMood(FaceExpression expression);
-    void showCalibratorSelector(String title, LegType legCursor);
+    void showCalibratorSelector(String title, int cursor, bool blink = false);
     void showCalibratorSetter(String title, int pwm);
 };

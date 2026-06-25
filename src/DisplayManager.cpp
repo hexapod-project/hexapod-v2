@@ -2,6 +2,7 @@
 #include "Utils.h"
 #include <Adafruit_GFX.h>
 #include <Wire.h>
+#include "Bitmaps.h"
 
 DisplayManager *DisplayManager::instance = NULL;
 
@@ -22,26 +23,52 @@ void DisplayManager::init()
     this->faceAnimator = new FaceAnimator(this->display);
 }
 
-void DisplayManager::runAnim(int16_t screen_w, int16_t screen_h, int16_t screen_x_offset, int16_t screen_y_offset, const unsigned char *frames[], int frameCount, uint16_t color, uint8_t fps, uint16_t maxDelay)
+void DisplayManager::startAnim(int16_t w, int16_t h, int16_t x, int16_t y, const unsigned char *frames[], int frameCount, uint16_t color, uint8_t fps, uint16_t maxDelay)
+{
+    stopAnim();
+
+    static int _w = w;
+    static int _h = h;
+    static int _x = x;
+    static int _y = y;
+    static const unsigned char **_frames = frames;
+    static int _frameCount = frameCount;
+    static uint16_t _color = color;
+    static uint8_t _fps = fps;
+    static uint16_t _maxDelay = maxDelay;
+
+    xTaskCreatePinnedToCore([](void *param)
+                            {
+DisplayManager *displayManager = DisplayManager::getInstance();
+displayManager->runAnimTask(_w, _w, _x, _y, _frames, _frameCount, _color, _fps,_maxDelay); },
+                            "AnimTask", 2048, NULL, 2, &animTaskHandle, 1);
+}
+
+void DisplayManager::stopAnim()
+{
+    if (animTaskHandle != NULL)
+    {
+        vTaskDelete(animTaskHandle);
+        animTaskHandle = NULL;
+    };
+}
+
+void DisplayManager::runAnimTask(int16_t w, int16_t h, int16_t x, int16_t y, const unsigned char *frames[], int frameCount, uint16_t color, uint8_t fps, uint16_t maxDelay)
 {
     if (frameCount == 1)
     {
         this->display->clearDisplay();
-        this->display->drawBitmap(screen_x_offset, screen_y_offset, frames[0], screen_w, screen_h, SH110X_WHITE, SH110X_BLACK);
+        this->display->drawBitmap(x, y, frames[0], w, h, SH110X_WHITE, SH110X_BLACK);
         this->display->display();
     }
 
-    int frameIndex = 0;
     int delayTime = pdMS_TO_TICKS(1000 / fps); // Calculate delay time in milliseconds based on FPS
+    int frameIndex = 0;
+
     while (true)
     {
-        if (this->currentDisplayMode != DisplayMode::HOME)
-        {
-            return;
-        }
-
         this->display->clearDisplay();
-        this->display->drawBitmap(screen_x_offset, screen_y_offset, frames[frameIndex], screen_w, screen_h, color);
+        this->display->drawBitmap(x, y, frames[frameIndex], w, h, color);
         this->display->display();
         frameIndex = (frameIndex + 1) % frameCount;
 
@@ -54,7 +81,7 @@ void DisplayManager::runAnim(int16_t screen_w, int16_t screen_h, int16_t screen_
         {
             vTaskDelay(delayTime); // Delay for the specified FPS
         }
-    }
+    };
 }
 
 void DisplayManager::stopLoading()
@@ -128,7 +155,7 @@ void DisplayManager::showMenu(String title, std::vector<String> options, int men
 
     short subMenuIndex = 0;
     short subMenusSize = options.size();
-    int selectorRectYBtm = (menuCursor + 1) * TEXT_PIXELS_PER_UNIT + TEXT_PIXELS_PER_UNIT; //Include title height
+    int selectorRectYBtm = (menuCursor + 1) * TEXT_PIXELS_PER_UNIT + TEXT_PIXELS_PER_UNIT; // Include title height
     int offsetY = max(0, selectorRectYBtm - SCREEN_HEIGHT + TEXT_PIXELS_PER_UNIT);
     display->setCursor(display->getCursorX(), TEXT_PIXELS_PER_UNIT + 2 - offsetY);
     for (subMenuIndex = 0; subMenuIndex < subMenusSize; subMenuIndex++)
@@ -196,6 +223,38 @@ void DisplayManager::changeMood(FaceExpression expression)
     faceAnimator->setExpression(expression);
 }
 
+void DisplayManager::showCalibratorSelector(String title, int cursor, bool blink)
+{
+    display->clearDisplay();
+
+    display->drawBitmap(HALF_SCREEN_WIDTH - HEXAPOD_VECTOR_W / 2, HALF_SCREEN_HEIGHT - HEXAPOD_VECTOR_H / 2 + TEXT_PIXELS_PER_UNIT, blink ? hexapodVectors[0] : hexapodVectors[cursor], HEXAPOD_VECTOR_W, HEXAPOD_VECTOR_H, SH110X_WHITE);
+
+    int backPosY = SCREEN_HEIGHT - TEXT_PIXELS_PER_UNIT - 1;
+    if (cursor == 0)
+    {
+        display->fillRect(0, backPosY, 22, TEXT_PIXELS_PER_UNIT, SH110X_WHITE);
+        display->setTextColor(SH110X_BLACK);
+    }
+    else
+    {
+        display->setTextColor(SH110X_WHITE);
+    }
+
+    display->setCursor(1, backPosY);
+    display->setTextSize(1);
+    display->println("Back");
+
+    writeMenuTitle(title);
+
+    display->display();
+
+    currTitle = title;
+    currCursorValue = cursor;
+    startTime = millis();
+
+    currentDisplayMode = DisplayMode::CALIBRATOR_SELECTOR;
+}
+
 void DisplayManager::showCalibratorSetter(String title, int pwm)
 {
     display->clearDisplay();
@@ -219,4 +278,12 @@ void DisplayManager::showCalibratorSetter(String title, int pwm)
 void DisplayManager::loop()
 {
     faceAnimator->loop();
+
+    if (currentDisplayMode == DisplayMode::CALIBRATOR_SELECTOR)
+    {
+        ulong elapsedTime = millis() - startTime;
+        if(elapsedTime > 500) {
+            showCalibratorSelector(currTitle, currCursorValue, millis() % 2);
+        }
+    }
 }
