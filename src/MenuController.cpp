@@ -15,6 +15,7 @@ std::map<MenuScreen, String> MENU_LABELS = {
     {MENU_MOOD_SAD, "Sad"},
     {MENU_MOOD_ANGRY, "Angry"},
     {MENU_MOOD_TIRED, "Tired"},
+    {MENU_MOOD_SLEEP, "Sleep"},
 
     {MENU_CALIBRATE_LF_COXA, "Left Front Coxa"},
     {MENU_CALIBRATE_LM_COXA, "Left Mid Coxa"},
@@ -77,7 +78,8 @@ const Joint CALIBRATE_JOINT_ORDERS[] = {
     Joint::LEFT_MID_COXA,
     Joint::LEFT_FRONT_TIBIA,
     Joint::LEFT_FRONT_FEMUR,
-    Joint::LEFT_FRONT_COXA,};
+    Joint::LEFT_FRONT_COXA,
+};
 
 void changeMood(FaceExpression expression)
 {
@@ -117,6 +119,12 @@ void openCalibratorSetter(MenuScreen screen, Joint joint)
     displayManager->showCalibratorSetter(MENU_LABELS[screen], pwm);
 }
 
+void onSleep()
+{
+    MenuController *menuController = MenuController::getInstance();
+    menuController->sleep();
+}
+
 std::map<MenuScreen, std::vector<MenuOption>> MENU_OPTIONS = {
     {
         MenuScreen::MENU_MAIN,
@@ -124,8 +132,7 @@ std::map<MenuScreen, std::vector<MenuOption>> MENU_OPTIONS = {
             MenuOption(MenuScreen::MENU_MOOD),
             MenuOption(MenuScreen::MENU_CALIBRATE, []()
                        { openCalibratorSelector(); }),
-            MenuOption(MenuScreen::MENU_SLEEP, []()
-                       { changeMood(FaceExpression::FACE_SLEEP); }),
+            MenuOption(MenuScreen::MENU_SLEEP, onSleep),
             MenuOption(MenuScreen::MENU_EXIT),
         },
     },
@@ -142,6 +149,8 @@ std::map<MenuScreen, std::vector<MenuOption>> MENU_OPTIONS = {
                        { changeMood(FaceExpression::FACE_ANGRY); }),
             MenuOption(MenuScreen::MENU_MOOD_TIRED, []()
                        { changeMood(FaceExpression::FACE_TIRED); }),
+            MenuOption(MenuScreen::MENU_MOOD_SLEEP, []()
+                       { changeMood(FaceExpression::FACE_SLEEP); }),
             MenuOption(MenuScreen::MENU_BACK, MenuScreen::MENU_MAIN),
         },
     },
@@ -225,6 +234,17 @@ void MenuController::reset()
     cursorValue = 0;
 }
 
+void MenuController::sleep()
+{
+    displayManager->changeMood(FACE_SLEEP);
+    displayManager->exitMenu();
+
+    Hexapod::getInstance()->rest();
+
+    sleepStart = millis();
+    isSleep = true;
+}
+
 void MenuController::setCursorValue(int value)
 {
     cursorValue = value;
@@ -242,6 +262,14 @@ int MenuController::getMenuIndex()
 
 void MenuController::onKnobPress()
 {
+    // Disable sleep if it was enabled
+    if (isSleep)
+    {
+        isSleep = false;
+        displayManager->changeMood(FACE_NEUTRAL);
+        return;
+    }
+
     std::vector<MenuOption> currSubMenus = MENU_OPTIONS[currMenuScreen];
 
     if (displayManager->currentDisplayMode == DisplayMode::HOME)
@@ -331,12 +359,14 @@ void MenuController::onKnobTurn(bool clockwise)
 
     switch (displayManager->currentDisplayMode)
     {
-    case DisplayMode::CALIBRATOR_SELECTOR:         
+    case DisplayMode::CALIBRATOR_SELECTOR:
         if (cursorValue > 0)
         {
             Joint joint = CALIBRATE_JOINT_ORDERS[cursorValue - 1];
             displayManager->showCalibratorSelector(JOINT_LABELS[joint], joint);
-        } else {
+        }
+        else
+        {
             displayManager->showCalibratorSelector("Back to Menu", 0);
         }
         break;
@@ -371,6 +401,15 @@ void MenuController::loop()
         {
             onKnobPress();
             swDebouncedCooldown = millis();
+        }
+    }
+
+    if (isSleep)
+    {
+        if (millis() - sleepStart >= SLEEP_DELAY)
+        {
+            displayManager->clearDisplay();
+            Hexapod::getInstance()->sleep();
         }
     }
 }

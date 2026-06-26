@@ -44,4 +44,5 @@ public:
     HexapodMode getMode();
     bool isRest();
     void switchMode(HexapodMode mode);
+    void sleep();    
 };

@@ -34,3 +34,9 @@ extern BLECharacteristic MOVE_SERVO_CHARACTERISTIC;
 
 #define MIN_PWM 500
 #define MAX_PWM 2500
+
+#define CLK_PIN 25 // ESP32 pin GPIO25 connected to the rotary encoder's CLK pin
+#define DT_PIN 26  // ESP32 pin GPIO26 connected to the rotary encoder's DT pin
+#define SW_PIN 27  // ESP32 pin GPIO27 connected to the rotary encoder's SW pin
+
+#define SLEEP_DELAY 5000

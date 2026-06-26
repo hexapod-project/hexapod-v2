@@ -1,6 +1,7 @@
 #include "Hexapod.h"
 #include "Configuration.h"
 #include "Utils.h"
+#include "Constants.h"
 
 Hexapod *Hexapod::instance = NULL;
 
@@ -16,7 +17,6 @@ Hexapod *Hexapod::getInstance()
 
 void Hexapod::init()
 {
-
     servoDriverLeft->begin();
     servoDriverLeft->setPWMFreq(PWM_FREQ);
 
@@ -30,13 +30,13 @@ void Hexapod::init()
     this->legs[LegType::RIGHT_MID] = LEGS[LegType::RIGHT_MID];
     this->legs[LegType::RIGHT_BACK] = LEGS[LegType::RIGHT_BACK];
 
+    esp_sleep_disable_wakeup_source(ESP_SLEEP_WAKEUP_EXT0);
+
     this->initNormalMode();
 }
 
 void Hexapod::initNormalMode()
 {
-    digitalWrite(LED_BUILTIN, LOW);
-
     Vec3 baseBodyPosition = Vec3(0, 0, BODY_OFFSET_Z);
     matrix = Mat4();
     matrix = matrix.translate(baseBodyPosition);
@@ -53,8 +53,6 @@ void Hexapod::initNormalMode()
     rest();
     delay(1000);
     stand();
-
-    digitalWrite(LED_BUILTIN, HIGH);
 }
 
 void Hexapod::resetMatrix()
@@ -91,6 +89,12 @@ void Hexapod::stand()
     }
 
     _isRest = false;
+}
+
+void Hexapod::sleep()
+{
+    esp_sleep_enable_ext0_wakeup((gpio_num_t)SW_PIN, 0);    
+    esp_light_sleep_start();
 }
 
 void Hexapod::startWalk(double walkDirection)

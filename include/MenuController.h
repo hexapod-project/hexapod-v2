@@ -3,10 +3,6 @@
 #include "DisplayManager.h"
 #include "Calibrator.h"
 
-#define CLK_PIN 25 // ESP32 pin GPIO25 connected to the rotary encoder's CLK pin
-#define DT_PIN 26  // ESP32 pin GPIO26 connected to the rotary encoder's DT pin
-#define SW_PIN 27  // ESP32 pin GPIO27 connected to the rotary encoder's SW pin
-
 enum MenuScreen
 {
     MENU_MAIN,
@@ -22,6 +18,7 @@ enum MenuScreen
     MENU_MOOD_SAD,
     MENU_MOOD_ANGRY,
     MENU_MOOD_TIRED,
+    MENU_MOOD_SLEEP,
 
     // Calibrate sub-menus
     MENU_CALIBRATE_LF_COXA,
@@ -75,6 +72,8 @@ private:
     unsigned int cursorValue = 0;
     int clkState = 0;
     int dtState = 0;
+    ulong sleepStart = 0;
+    bool isSleep = false;
 
     Joint selectedJoint;
 
@@ -91,4 +90,5 @@ public:
     void setScreen(MenuScreen screen);
     void setCursorValue(int value);
     void setSelectedJoint(Joint joint);
+    void sleep();
 };

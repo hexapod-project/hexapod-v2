@@ -283,7 +283,13 @@ void DisplayManager::loop()
     {
         ulong elapsedTime = millis() - startTime;
         if(elapsedTime > 500) {
-            showCalibratorSelector(currTitle, currCursorValue, millis() % 2);
+            showCalibratorSelector(currTitle, currCursorValue, flipFlop);
+            flipFlop = !flipFlop;
         }
     }
+}
+
+void DisplayManager::clearDisplay() {
+    display->clearDisplay();
+    display->display();
 }

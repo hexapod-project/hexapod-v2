@@ -18,6 +18,7 @@ private:
     int currCursorValue = 0;
     ulong startTime = 0;
     String currTitle = "";
+    bool flipFlop = false;
 
     void startAnim(int16_t screen_w, int16_t screen_h, int16_t screen_x_offset, int16_t screen_y_offset, const unsigned char *frames[], int frameCount, uint16_t color = SH110X_WHITE, uint8_t fps = 25, uint16_t maxDelay = 0);
     void runAnimTask(int16_t screen_w, int16_t screen_h, int16_t screen_x_offset, int16_t screen_y_offset, const unsigned char *frames[], int frameCount, uint16_t color = SH110X_WHITE, uint8_t fps = 25, uint16_t maxDelay = 0);
@@ -39,4 +40,5 @@ public:
     void changeMood(FaceExpression expression);
     void showCalibratorSelector(String title, int cursor, bool blink = false);
     void showCalibratorSetter(String title, int pwm);
+    void clearDisplay();
 };

@@ -189,12 +189,12 @@ void setup()
                      new HexapodModeCharacteristicCallbacks(),
                      new HexapodRestCharacteristicCallbacks());
 
-  pinMode(LED_BUILTIN, OUTPUT);
-
   calibrator.init();
   displayManager.init();
   displayManager.startLoading();
-  hexapod.init();
+  
+  hexapod.init();  
+
   displayManager.stopLoading();
   displayManager.showIdle();
   menuController.init();
