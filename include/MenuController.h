@@ -9,6 +9,7 @@ enum MenuScreen
     MENU_MOOD,
     MENU_CALIBRATE,
     MENU_SLEEP,
+    MENU_OFF,
     MENU_EXIT,
     MENU_BACK,
 
@@ -91,4 +92,5 @@ public:
     void setCursorValue(int value);
     void setSelectedJoint(Joint joint);
     void sleep();
+    void turnOff();
 };

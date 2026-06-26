@@ -3,10 +3,11 @@
 #include <Arduino.h>
 
 std::map<MenuScreen, String> MENU_LABELS = {
-    {MENU_MAIN, "Main"},
+    {MENU_MAIN, "Main Menu"},
     {MENU_MOOD, "Change Mood"},
     {MENU_CALIBRATE, "Calibrate"},
     {MENU_SLEEP, "Sleep"},
+    {MENU_OFF, "Power Off"},
     {MENU_EXIT, "Exit"},
     {MENU_BACK, "Back"},
 
@@ -125,6 +126,12 @@ void onSleep()
     menuController->sleep();
 }
 
+void onTurnOff()
+{
+    MenuController *menuController = MenuController::getInstance();
+    menuController->turnOff();
+}
+
 std::map<MenuScreen, std::vector<MenuOption>> MENU_OPTIONS = {
     {
         MenuScreen::MENU_MAIN,
@@ -133,6 +140,7 @@ std::map<MenuScreen, std::vector<MenuOption>> MENU_OPTIONS = {
             MenuOption(MenuScreen::MENU_CALIBRATE, []()
                        { openCalibratorSelector(); }),
             MenuOption(MenuScreen::MENU_SLEEP, onSleep),
+            MenuOption(MenuScreen::MENU_OFF, onTurnOff),
             MenuOption(MenuScreen::MENU_EXIT),
         },
     },
@@ -243,6 +251,26 @@ void MenuController::sleep()
 
     sleepStart = millis();
     isSleep = true;
+}
+
+void MenuController::turnOff()
+{
+    displayManager->exitMenu();
+    displayManager->getDisplay()->setCursor(HALF_SCREEN_WIDTH - 48, HALF_SCREEN_HEIGHT - TEXT_PIXELS_PER_UNIT/2);
+    displayManager->getDisplay()->setTextColor(SH110X_WHITE);
+    displayManager->getDisplay()->println("Shutting down...");
+    displayManager->getDisplay()->display();
+
+    Hexapod::getInstance()->rest();
+
+    delay(1000);
+
+    displayManager->clearDisplay();
+
+    delay(300);
+    
+    esp_sleep_enable_ext0_wakeup((gpio_num_t)SW_PIN, 0);
+    esp_deep_sleep_start();
 }
 
 void MenuController::setCursorValue(int value)

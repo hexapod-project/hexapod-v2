@@ -41,4 +41,5 @@ public:
     void showCalibratorSelector(String title, int cursor, bool blink = false);
     void showCalibratorSetter(String title, int pwm);
     void clearDisplay();
+    Adafruit_SH1106G *getDisplay();
 };

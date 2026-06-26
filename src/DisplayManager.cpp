@@ -16,6 +16,11 @@ DisplayManager *DisplayManager::getInstance()
     return instance;
 }
 
+Adafruit_SH1106G *DisplayManager::getDisplay()
+{
+    return display;
+}
+
 void DisplayManager::init()
 {
     this->display->begin(OLED_I2C_ADDRESS);
@@ -282,14 +287,16 @@ void DisplayManager::loop()
     if (currentDisplayMode == DisplayMode::CALIBRATOR_SELECTOR)
     {
         ulong elapsedTime = millis() - startTime;
-        if(elapsedTime > 500) {
+        if (elapsedTime > 500)
+        {
             showCalibratorSelector(currTitle, currCursorValue, flipFlop);
             flipFlop = !flipFlop;
         }
     }
 }
 
-void DisplayManager::clearDisplay() {
+void DisplayManager::clearDisplay()
+{
     display->clearDisplay();
     display->display();
 }
