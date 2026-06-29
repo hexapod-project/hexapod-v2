@@ -10,6 +10,7 @@
 #include "Utils.h"
 #include "DisplayManager.h"
 #include "MenuController.h"
+#include "StateMachine.h"
 
 bool isConnected = false;
 
@@ -18,7 +19,8 @@ DisplayManager displayManager = DisplayManager();
 Hexapod hexapod = Hexapod();
 HexapodBLE hexapodBLE = HexapodBLE();
 Calibrator calibrator = Calibrator(&hexapod);
-MenuController menuController = MenuController(&displayManager, &calibrator);
+StateMachine stateMachine = StateMachine();
+MenuController menuController = MenuController(&displayManager, &calibrator, &stateMachine);
 
 class HexapodBLEServerCallbacks : public BLEServerCallbacks
 {
@@ -43,13 +45,17 @@ class MoveCharacteristicCallbacks : public BLECharacteristicCallbacks
     std::string moveData = characteristic->getValue();
     int walkDirection = std::stoi(moveData);
 
+    Serial.println(walkDirection);
+
     if (walkDirection >= 0)
     {
       hexapod.startWalk(walkDirection);
+      stateMachine.moving(walkDirection);
     }
     else
     {
       hexapod.stop();
+      stateMachine.idle();
     }
   }
 };
@@ -155,26 +161,25 @@ class HexapodRestCharacteristicCallbacks : public BLECharacteristicCallbacks
 {
   void onRead(BLECharacteristic *characteristic)
   {
-    bool isRest = hexapod.isRest();
+    bool isSleep = stateMachine.getState() == STATE_SLEEP;
 
-    characteristic->setValue(std::to_string(isRest));
+    characteristic->setValue(std::to_string(isSleep));
   }
 
   void onWrite(BLECharacteristic *characteristic)
   {
-    std::string isRest = characteristic->getValue();
+    std::string isSleep = characteristic->getValue();
 
-    if (isRest == "1")
+    if (isSleep == "1")
     {
-      hexapod.rest();
+      stateMachine.sleep();
     }
     else
     {
-      hexapod.stand();
+      stateMachine.idle();
     }
   }
 };
-
 
 void setup()
 {
@@ -192,15 +197,19 @@ void setup()
   calibrator.init();
   displayManager.init();
   displayManager.startLoading();
-  
-  hexapod.init();  
+
+  hexapod.init();
 
   displayManager.stopLoading();
-  displayManager.showIdle();
   menuController.init();
+
+  stateMachine.init();
+  stateMachine.idle();
 }
 
-void loop() {  
+void loop()
+{
   menuController.loop();
   displayManager.loop();
+  stateMachine.loop();
 }

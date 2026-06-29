@@ -1,3 +1,5 @@
+#pragma once 
+
 #include <Adafruit_SH110X.h>
 #include "Vec2.h"
 #include "Enums.h"
@@ -52,4 +54,5 @@ private:
     void setState(FaceState state);
     void hide();
     void show();
+    void setEyePosition(Vec2 newPos);
 };

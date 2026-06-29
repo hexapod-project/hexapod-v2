@@ -40,3 +40,8 @@ extern BLECharacteristic MOVE_SERVO_CHARACTERISTIC;
 #define SW_PIN 27  // ESP32 pin GPIO27 connected to the rotary encoder's SW pin
 
 #define SLEEP_DELAY 5000
+
+#define STATE_DURATION_IDLE_TO_SLEEP 300000
+#define STATE_DURATION_SLEEP_TO_OFF 120000
+
+#define MAX_EYE_X_OFFSET HALF_SCREEN_WIDTH - EYE_WIDTH - EYE_GAP/2

@@ -2,6 +2,7 @@
 
 #include "DisplayManager.h"
 #include "Calibrator.h"
+#include "StateMachine.h"
 
 enum MenuScreen
 {
@@ -65,6 +66,8 @@ class MenuController
 private:
     static MenuController *instance;
     DisplayManager *displayManager;
+    StateMachine *stateMachine;
+
     Calibrator *calibrator;
     ulong swDebouncedCooldown = 0;
 
@@ -73,8 +76,6 @@ private:
     unsigned int cursorValue = 0;
     int clkState = 0;
     int dtState = 0;
-    ulong sleepStart = 0;
-    bool isSleep = false;
 
     Joint selectedJoint;
 
@@ -82,7 +83,7 @@ private:
     void onKnobTurn(bool clockwise);
 
 public:
-    MenuController(DisplayManager *displayManager, Calibrator *calibrator);
+    MenuController(DisplayManager *displayManager, Calibrator *calibrator, StateMachine* stateMachine);
     static MenuController *getInstance();
     void init();
     void reset();
@@ -90,7 +91,6 @@ public:
     void loop();
     void setScreen(MenuScreen screen);
     void setCursorValue(int value);
-    void setSelectedJoint(Joint joint);
-    void sleep();
+    void setSelectedJoint(Joint joint);    
     void turnOff();
 };

@@ -195,3 +195,7 @@ void FaceAnimator::show()
 {
     isHidden = false;
 }
+
+void FaceAnimator::setEyePosition(Vec2 newPos) {
+    this->nextEyeOffset = newPos;
+}

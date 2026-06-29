@@ -13,8 +13,7 @@ private:
     static DisplayManager *instance;
     Adafruit_SH1106G *display = new Adafruit_SH1106G(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
     TaskHandle_t loadingTaskHandle, animTaskHandle;
-    FaceAnimator *faceAnimator;
-
+    
     int currCursorValue = 0;
     ulong startTime = 0;
     String currTitle = "";
@@ -27,6 +26,7 @@ private:
 
 public:
     DisplayMode currentDisplayMode = DisplayMode::HOME;
+    FaceAnimator *faceAnimator;
 
     DisplayManager();
     static DisplayManager *getInstance();

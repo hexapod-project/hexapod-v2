@@ -122,8 +122,11 @@ void openCalibratorSetter(MenuScreen screen, Joint joint)
 
 void onSleep()
 {
-    MenuController *menuController = MenuController::getInstance();
-    menuController->sleep();
+    StateMachine *stateMachine = StateMachine::getInstance();
+    DisplayManager *displayManager = DisplayManager::getInstance();
+    
+    stateMachine->sleep();
+    displayManager->exitMenu();
 }
 
 void onTurnOff()
@@ -214,7 +217,7 @@ std::map<MenuScreen, std::vector<MenuOption>> MENU_OPTIONS = {
 
 MenuController *MenuController::instance = NULL;
 
-MenuController::MenuController(DisplayManager *displayManager, Calibrator *calibrator)
+MenuController::MenuController(DisplayManager *displayManager, Calibrator *calibrator, StateMachine* stateMachine)
 {
     if (this->instance == NULL)
     {
@@ -223,6 +226,7 @@ MenuController::MenuController(DisplayManager *displayManager, Calibrator *calib
 
     this->displayManager = displayManager;
     this->calibrator = calibrator;
+    this->stateMachine = stateMachine;
 }
 
 MenuController *MenuController::getInstance()
@@ -241,18 +245,6 @@ void MenuController::reset()
 {
     cursorValue = 0;
 }
-
-void MenuController::sleep()
-{
-    displayManager->changeMood(FACE_SLEEP);
-    displayManager->exitMenu();
-
-    Hexapod::getInstance()->rest();
-
-    sleepStart = millis();
-    isSleep = true;
-}
-
 void MenuController::turnOff()
 {
     displayManager->exitMenu();
@@ -291,10 +283,9 @@ int MenuController::getMenuIndex()
 void MenuController::onKnobPress()
 {
     // Disable sleep if it was enabled
-    if (isSleep)
-    {
-        isSleep = false;
-        displayManager->changeMood(FACE_NEUTRAL);
+    if (stateMachine->getState() == State::STATE_SLEEP)
+    {        
+        stateMachine->idle();
         return;
     }
 
@@ -429,15 +420,6 @@ void MenuController::loop()
         {
             onKnobPress();
             swDebouncedCooldown = millis();
-        }
-    }
-
-    if (isSleep)
-    {
-        if (millis() - sleepStart >= SLEEP_DELAY)
-        {
-            displayManager->clearDisplay();
-            Hexapod::getInstance()->sleep();
         }
     }
 }

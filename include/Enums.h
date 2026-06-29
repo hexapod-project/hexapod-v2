@@ -105,3 +105,10 @@ enum FaceState
     FACE_IDLE,
     FACE_STILL
 };
+
+enum State
+{
+    STATE_IDLE,
+    SATE_MOVING,
+    STATE_SLEEP
+};
