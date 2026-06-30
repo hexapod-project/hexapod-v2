@@ -86,7 +86,8 @@ enum DisplayMode
     LOADING,
     MENU,
     CALIBRATOR_SELECTOR,
-    CALIBRATOR_SETTER
+    CALIBRATOR_SETTER,
+    CONFIRMATION
 };
 
 enum FaceExpression

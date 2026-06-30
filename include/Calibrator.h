@@ -19,4 +19,5 @@ public:
     void testServoAngle(int servoIndex, short degrees);
     uint8_t *getCalibrationSettings();
     uint16_t getPWMPulse(int servoIndex);
+    void resetToDefault();
 };

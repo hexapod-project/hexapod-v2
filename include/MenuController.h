@@ -11,6 +11,9 @@ enum MenuScreen
     MENU_CALIBRATE,
     MENU_SLEEP,
     MENU_OFF,
+    MENU_RESET,
+    MENU_RESET_CONFIRMATION,
+    MENU_RESET_YES,
     MENU_EXIT,
     MENU_BACK,
 
@@ -74,6 +77,7 @@ private:
     std::vector<String> subMenuLabels = {};
     MenuScreen currMenuScreen = MenuScreen::MENU_EXIT;
     unsigned int cursorValue = 0;
+    unsigned int prevCursorValue = 0;
     int clkState = 0;
     int dtState = 0;
 
@@ -81,6 +85,7 @@ private:
 
     void onKnobPress();
     void onKnobTurn(bool clockwise);
+    void getSubMenuLabels();
 
 public:
     MenuController(DisplayManager *displayManager, Calibrator *calibrator, StateMachine* stateMachine);
@@ -93,4 +98,5 @@ public:
     void setCursorValue(int value);
     void setSelectedJoint(Joint joint);    
     void turnOff();
+    void resetToDefault();
 };

@@ -139,7 +139,7 @@ void DisplayManager::startLoading()
 void DisplayManager::writeMenuTitle(String title)
 {
     display->setTextSize(1);
-    display->fillRect(0, 0, SCREEN_WIDTH, TEXT_PIXELS_PER_UNIT + 2, SH110X_BLACK);
+    display->fillRect(0, 0, SCREEN_WIDTH, TEXT_PIXELS_PER_UNIT_H + 2, SH110X_BLACK);
     display->setCursor(1, 1);
     display->setTextColor(SH110X_WHITE);
     display->println(title);
@@ -160,16 +160,16 @@ void DisplayManager::showMenu(String title, std::vector<String> options, int men
 
     short subMenuIndex = 0;
     short subMenusSize = options.size();
-    int selectorRectYBtm = (menuCursor + 1) * TEXT_PIXELS_PER_UNIT + TEXT_PIXELS_PER_UNIT; // Include title height
-    int offsetY = max(0, selectorRectYBtm - SCREEN_HEIGHT + TEXT_PIXELS_PER_UNIT);
-    display->setCursor(display->getCursorX(), TEXT_PIXELS_PER_UNIT + 2 - offsetY);
+    int selectorRectYBtm = (menuCursor + 1) * TEXT_PIXELS_PER_UNIT_H + TEXT_PIXELS_PER_UNIT_H; // Include title height
+    int offsetY = max(0, selectorRectYBtm - SCREEN_HEIGHT + TEXT_PIXELS_PER_UNIT_H);
+    display->setCursor(0, TEXT_PIXELS_PER_UNIT_H + 2 - offsetY);
     for (subMenuIndex = 0; subMenuIndex < subMenusSize; subMenuIndex++)
     {
         if (subMenuIndex == menuCursor)
         {
             int16_t rectX = 0;
             int16_t rectY = display->getCursorY();
-            int16_t rectHeight = TEXT_PIXELS_PER_UNIT;
+            int16_t rectHeight = TEXT_PIXELS_PER_UNIT_H;
             display->fillRect(rectX, rectY, SCREEN_WIDTH, rectHeight, SH110X_WHITE);
             display->setTextColor(SH110X_BLACK);
         }
@@ -232,12 +232,12 @@ void DisplayManager::showCalibratorSelector(String title, int cursor, bool blink
 {
     display->clearDisplay();
 
-    display->drawBitmap(HALF_SCREEN_WIDTH - HEXAPOD_VECTOR_W / 2, HALF_SCREEN_HEIGHT - HEXAPOD_VECTOR_H / 2 + TEXT_PIXELS_PER_UNIT, blink ? hexapodVectors[0] : hexapodVectors[cursor], HEXAPOD_VECTOR_W, HEXAPOD_VECTOR_H, SH110X_WHITE);
+    display->drawBitmap(HALF_SCREEN_WIDTH - HEXAPOD_VECTOR_W / 2, HALF_SCREEN_HEIGHT - HEXAPOD_VECTOR_H / 2 + TEXT_PIXELS_PER_UNIT_H, blink ? hexapodVectors[0] : hexapodVectors[cursor], HEXAPOD_VECTOR_W, HEXAPOD_VECTOR_H, SH110X_WHITE);
 
-    int backPosY = SCREEN_HEIGHT - TEXT_PIXELS_PER_UNIT - 1;
+    int backPosY = SCREEN_HEIGHT - TEXT_PIXELS_PER_UNIT_H - 1;
     if (cursor == 0)
     {
-        display->fillRect(0, backPosY, 22, TEXT_PIXELS_PER_UNIT, SH110X_WHITE);
+        display->fillRect(0, backPosY, 22, TEXT_PIXELS_PER_UNIT_H, SH110X_WHITE);
         display->setTextColor(SH110X_BLACK);
     }
     else
@@ -278,6 +278,49 @@ void DisplayManager::showCalibratorSetter(String title, int pwm)
     display->display();
 
     currentDisplayMode = DisplayMode::CALIBRATOR_SETTER;
+}
+
+void DisplayManager::showConfirmation(String title, String message, bool yes)
+{
+    display->clearDisplay();
+
+    writeMenuTitle(title);
+
+    display->setTextSize(1);
+
+    uint16_t textW, textH = 0;
+    int16_t textX1, textY1 = 0;
+
+    display->getTextBounds(message, 0, 0, &textX1, &textY1, &textW, &textH);
+    display->setCursor(HALF_SCREEN_WIDTH - textW / 2, HALF_SCREEN_HEIGHT - textH / 2);
+    display->setTextColor(SH110X_WHITE);
+    display->println(message);
+
+    int actionY = SCREEN_HEIGHT - TEXT_PIXELS_PER_UNIT_H - 1;
+    int yesX = HALF_SCREEN_WIDTH - TEXT_PIXELS_PER_UNIT_H * 3 - 5;
+    int noX = HALF_SCREEN_WIDTH + 5;
+
+    if (yes)
+    {
+        display->fillRect(yesX - 3, actionY, TEXT_PIXELS_PER_UNIT_H * 3, TEXT_PIXELS_PER_UNIT_H, SH110X_WHITE);
+    }
+    else
+    {
+        display->fillRect(noX - 3, actionY, TEXT_PIXELS_PER_UNIT_H * 2, TEXT_PIXELS_PER_UNIT_H, SH110X_WHITE);
+    }
+
+    display->setCursor(yesX, actionY);
+    display->setTextColor(yes ? SH110X_BLACK : SH110X_WHITE);
+    display->print("Yes");
+
+    display->setCursor(noX, actionY);
+
+    display->setTextColor(!yes ? SH110X_BLACK : SH110X_WHITE);    
+    display->print("No");
+
+    display->display();
+
+    currentDisplayMode = DisplayMode::CONFIRMATION;
 }
 
 void DisplayManager::loop()

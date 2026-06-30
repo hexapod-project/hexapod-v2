@@ -8,6 +8,8 @@ std::map<MenuScreen, String> MENU_LABELS = {
     {MENU_CALIBRATE, "Calibrate"},
     {MENU_SLEEP, "Sleep"},
     {MENU_OFF, "Power Off"},
+    {MENU_RESET, "Reset to Default"},
+    {MENU_RESET_CONFIRMATION, "Reset to Default"},
     {MENU_EXIT, "Exit"},
     {MENU_BACK, "Back"},
 
@@ -92,6 +94,11 @@ void changeMood(FaceExpression expression)
 
 void openCalibratorSelector(int jointIndex = 1)
 {
+    if (jointIndex > sizeof(CALIBRATE_JOINT_ORDERS) - 1)
+    {
+        jointIndex = 1;
+    }
+
     MenuController *menuController = MenuController::getInstance();
     DisplayManager *displayManager = DisplayManager::getInstance();
 
@@ -120,11 +127,27 @@ void openCalibratorSetter(MenuScreen screen, Joint joint)
     displayManager->showCalibratorSetter(MENU_LABELS[screen], pwm);
 }
 
+void openResetToDefaultConfirmation()
+{
+    MenuController *menuController = MenuController::getInstance();
+    DisplayManager *displayManager = DisplayManager::getInstance();
+
+    menuController->setScreen(MENU_RESET_CONFIRMATION);
+    menuController->setCursorValue(0);
+    displayManager->showConfirmation(MENU_LABELS[MENU_RESET_CONFIRMATION], "Are you sure?", false);
+}
+
+void onResetToDefaultConfirmed()
+{
+    MenuController *menuController = MenuController::getInstance();
+    menuController->resetToDefault();
+}
+
 void onSleep()
 {
     StateMachine *stateMachine = StateMachine::getInstance();
     DisplayManager *displayManager = DisplayManager::getInstance();
-    
+
     stateMachine->sleep();
     displayManager->exitMenu();
 }
@@ -144,6 +167,7 @@ std::map<MenuScreen, std::vector<MenuOption>> MENU_OPTIONS = {
                        { openCalibratorSelector(); }),
             MenuOption(MenuScreen::MENU_SLEEP, onSleep),
             MenuOption(MenuScreen::MENU_OFF, onTurnOff),
+            MenuOption(MenuScreen::MENU_RESET, openResetToDefaultConfirmation),
             MenuOption(MenuScreen::MENU_EXIT),
         },
     },
@@ -167,57 +191,66 @@ std::map<MenuScreen, std::vector<MenuOption>> MENU_OPTIONS = {
     },
     {
         MenuScreen::MENU_CALIBRATE,
-        {// Left
-         MenuOption(MenuScreen::MENU_BACK),
-         MenuOption(MenuScreen::MENU_CALIBRATE_LF_COXA, []()
-                    { openCalibratorSetter(MenuScreen::MENU_CALIBRATE_LF_COXA, Joint::LEFT_FRONT_COXA); }),
-         MenuOption(MenuScreen::MENU_CALIBRATE_LF_FEMUR, []()
-                    { openCalibratorSetter(MenuScreen::MENU_CALIBRATE_LF_FEMUR, Joint::LEFT_FRONT_FEMUR); }),
-         MenuOption(MenuScreen::MENU_CALIBRATE_LF_TIBIA, []()
-                    { openCalibratorSetter(MenuScreen::MENU_CALIBRATE_LF_TIBIA, Joint::LEFT_FRONT_TIBIA); }),
+        {
+            MenuOption(MenuScreen::MENU_BACK, MenuScreen::MENU_MAIN),
 
-         MenuOption(MenuScreen::MENU_CALIBRATE_LM_COXA, []()
-                    { openCalibratorSetter(MenuScreen::MENU_CALIBRATE_LM_COXA, Joint::LEFT_MID_COXA); }),
-         MenuOption(MenuScreen::MENU_CALIBRATE_LM_FEMUR, []()
-                    { openCalibratorSetter(MenuScreen::MENU_CALIBRATE_LM_FEMUR, Joint::LEFT_MID_FEMUR); }),
-         MenuOption(MenuScreen::MENU_CALIBRATE_LM_TIBIA, []()
-                    { openCalibratorSetter(MenuScreen::MENU_CALIBRATE_LM_TIBIA, Joint::LEFT_MID_TIBIA); }),
+            // Right
+            MenuOption(MenuScreen::MENU_CALIBRATE_RF_COXA, []()
+                       { openCalibratorSetter(MenuScreen::MENU_CALIBRATE_RF_COXA, Joint::RIGHT_FRONT_COXA); }),
+            MenuOption(MenuScreen::MENU_CALIBRATE_RF_FEMUR, []()
+                       { openCalibratorSetter(MenuScreen::MENU_CALIBRATE_RF_FEMUR, Joint::RIGHT_FRONT_FEMUR); }),
+            MenuOption(MenuScreen::MENU_CALIBRATE_RF_TIBIA, []()
+                       { openCalibratorSetter(MenuScreen::MENU_CALIBRATE_RF_TIBIA, Joint::RIGHT_FRONT_TIBIA); }),
 
-         MenuOption(MenuScreen::MENU_CALIBRATE_LB_COXA, []()
-                    { openCalibratorSetter(MenuScreen::MENU_CALIBRATE_LB_COXA, Joint::LEFT_BACK_COXA); }),
-         MenuOption(MenuScreen::MENU_CALIBRATE_LB_FEMUR, []()
-                    { openCalibratorSetter(MenuScreen::MENU_CALIBRATE_LB_FEMUR, Joint::LEFT_BACK_FEMUR); }),
-         MenuOption(MenuScreen::MENU_CALIBRATE_LB_TIBIA, []()
-                    { openCalibratorSetter(MenuScreen::MENU_CALIBRATE_LB_TIBIA, Joint::LEFT_BACK_TIBIA); }),
+            MenuOption(MenuScreen::MENU_CALIBRATE_RM_COXA, []()
+                       { openCalibratorSetter(MenuScreen::MENU_CALIBRATE_RM_COXA, Joint::RIGHT_MID_COXA); }),
+            MenuOption(MenuScreen::MENU_CALIBRATE_RM_FEMUR, []()
+                       { openCalibratorSetter(MenuScreen::MENU_CALIBRATE_RM_FEMUR, Joint::RIGHT_MID_FEMUR); }),
+            MenuOption(MenuScreen::MENU_CALIBRATE_RM_TIBIA, []()
+                       { openCalibratorSetter(MenuScreen::MENU_CALIBRATE_RM_TIBIA, Joint::RIGHT_MID_TIBIA); }),
 
-         // Right
-         MenuOption(MenuScreen::MENU_CALIBRATE_RF_COXA, []()
-                    { openCalibratorSetter(MenuScreen::MENU_CALIBRATE_RF_COXA, Joint::RIGHT_FRONT_COXA); }),
-         MenuOption(MenuScreen::MENU_CALIBRATE_RF_FEMUR, []()
-                    { openCalibratorSetter(MenuScreen::MENU_CALIBRATE_RF_FEMUR, Joint::RIGHT_FRONT_FEMUR); }),
-         MenuOption(MenuScreen::MENU_CALIBRATE_RF_TIBIA, []()
-                    { openCalibratorSetter(MenuScreen::MENU_CALIBRATE_RF_TIBIA, Joint::RIGHT_FRONT_TIBIA); }),
+            MenuOption(MenuScreen::MENU_CALIBRATE_RB_COXA, []()
+                       { openCalibratorSetter(MenuScreen::MENU_CALIBRATE_RB_COXA, Joint::RIGHT_BACK_COXA); }),
+            MenuOption(MenuScreen::MENU_CALIBRATE_RB_FEMUR, []()
+                       { openCalibratorSetter(MenuScreen::MENU_CALIBRATE_RB_FEMUR, Joint::RIGHT_BACK_FEMUR); }),
+            MenuOption(MenuScreen::MENU_CALIBRATE_RB_TIBIA, []()
+                       { openCalibratorSetter(MenuScreen::MENU_CALIBRATE_RB_TIBIA, Joint::RIGHT_BACK_TIBIA); }),
 
-         MenuOption(MenuScreen::MENU_CALIBRATE_RM_COXA, []()
-                    { openCalibratorSetter(MenuScreen::MENU_CALIBRATE_RM_COXA, Joint::RIGHT_MID_COXA); }),
-         MenuOption(MenuScreen::MENU_CALIBRATE_RM_FEMUR, []()
-                    { openCalibratorSetter(MenuScreen::MENU_CALIBRATE_RM_FEMUR, Joint::RIGHT_MID_FEMUR); }),
-         MenuOption(MenuScreen::MENU_CALIBRATE_RM_TIBIA, []()
-                    { openCalibratorSetter(MenuScreen::MENU_CALIBRATE_RM_TIBIA, Joint::RIGHT_MID_TIBIA); }),
+            // Left
+            MenuOption(MenuScreen::MENU_CALIBRATE_LB_TIBIA, []()
+                       { openCalibratorSetter(MenuScreen::MENU_CALIBRATE_LB_TIBIA, Joint::LEFT_BACK_TIBIA); }),
+            MenuOption(MenuScreen::MENU_CALIBRATE_LB_FEMUR, []()
+                       { openCalibratorSetter(MenuScreen::MENU_CALIBRATE_LB_FEMUR, Joint::LEFT_BACK_FEMUR); }),
+            MenuOption(MenuScreen::MENU_CALIBRATE_LB_COXA, []()
+                       { openCalibratorSetter(MenuScreen::MENU_CALIBRATE_LB_COXA, Joint::LEFT_BACK_COXA); }),
 
-         MenuOption(MenuScreen::MENU_CALIBRATE_RB_COXA, []()
-                    { openCalibratorSetter(MenuScreen::MENU_CALIBRATE_RB_COXA, Joint::RIGHT_BACK_COXA); }),
-         MenuOption(MenuScreen::MENU_CALIBRATE_RB_FEMUR, []()
-                    { openCalibratorSetter(MenuScreen::MENU_CALIBRATE_RB_FEMUR, Joint::RIGHT_BACK_FEMUR); }),
-         MenuOption(MenuScreen::MENU_CALIBRATE_RB_TIBIA, []()
-                    { openCalibratorSetter(MenuScreen::MENU_CALIBRATE_RB_TIBIA, Joint::RIGHT_BACK_TIBIA); }),
-         MenuOption(MenuScreen::MENU_BACK)},
+            MenuOption(MenuScreen::MENU_CALIBRATE_LM_TIBIA, []()
+                       { openCalibratorSetter(MenuScreen::MENU_CALIBRATE_LM_TIBIA, Joint::LEFT_MID_TIBIA); }),
+            MenuOption(MenuScreen::MENU_CALIBRATE_LM_FEMUR, []()
+                       { openCalibratorSetter(MenuScreen::MENU_CALIBRATE_LM_FEMUR, Joint::LEFT_MID_FEMUR); }),
+            MenuOption(MenuScreen::MENU_CALIBRATE_LM_COXA, []()
+                       { openCalibratorSetter(MenuScreen::MENU_CALIBRATE_LM_COXA, Joint::LEFT_MID_COXA); }),
+
+            MenuOption(MenuScreen::MENU_CALIBRATE_LF_TIBIA, []()
+                       { openCalibratorSetter(MenuScreen::MENU_CALIBRATE_LF_TIBIA, Joint::LEFT_FRONT_TIBIA); }),
+            MenuOption(MenuScreen::MENU_CALIBRATE_LF_FEMUR, []()
+                       { openCalibratorSetter(MenuScreen::MENU_CALIBRATE_LF_FEMUR, Joint::LEFT_FRONT_FEMUR); }),
+            MenuOption(MenuScreen::MENU_CALIBRATE_LF_COXA, []()
+                       { openCalibratorSetter(MenuScreen::MENU_CALIBRATE_LF_COXA, Joint::LEFT_FRONT_COXA); }),
+        },
+    },
+    {
+        MENU_RESET_CONFIRMATION,
+        {
+            MenuOption(MENU_BACK, MENU_MAIN),
+            MenuOption(MENU_RESET_YES, onResetToDefaultConfirmed), // Yes
+        },
     },
 };
 
 MenuController *MenuController::instance = NULL;
 
-MenuController::MenuController(DisplayManager *displayManager, Calibrator *calibrator, StateMachine* stateMachine)
+MenuController::MenuController(DisplayManager *displayManager, Calibrator *calibrator, StateMachine *stateMachine)
 {
     if (this->instance == NULL)
     {
@@ -248,7 +281,7 @@ void MenuController::reset()
 void MenuController::turnOff()
 {
     displayManager->exitMenu();
-    displayManager->getDisplay()->setCursor(HALF_SCREEN_WIDTH - 48, HALF_SCREEN_HEIGHT - TEXT_PIXELS_PER_UNIT/2);
+    displayManager->getDisplay()->setCursor(HALF_SCREEN_WIDTH - 48, HALF_SCREEN_HEIGHT - TEXT_PIXELS_PER_UNIT_H / 2);
     displayManager->getDisplay()->setTextColor(SH110X_WHITE);
     displayManager->getDisplay()->println("Shutting down...");
     displayManager->getDisplay()->display();
@@ -260,13 +293,14 @@ void MenuController::turnOff()
     displayManager->clearDisplay();
 
     delay(300);
-    
+
     esp_sleep_enable_ext0_wakeup((gpio_num_t)SW_PIN, 0);
     esp_deep_sleep_start();
 }
 
 void MenuController::setCursorValue(int value)
 {
+    prevCursorValue = cursorValue;
     cursorValue = value;
 }
 
@@ -280,12 +314,31 @@ int MenuController::getMenuIndex()
     return cursorValue;
 }
 
+void MenuController::getSubMenuLabels() {
+    std::vector<MenuOption> currSubMenus = MENU_OPTIONS[currMenuScreen];
+    
+    subMenuLabels.clear();
+    int subMenusSize = currSubMenus.size();
+    short subMenuIndex = 0;
+
+    for (subMenuIndex = 0; subMenuIndex < subMenusSize; subMenuIndex++)
+    {
+        subMenuLabels.push_back(MENU_LABELS[currSubMenus.at(subMenuIndex).screen]);
+    }
+}
+
 void MenuController::onKnobPress()
 {
     // Disable sleep if it was enabled
     if (stateMachine->getState() == State::STATE_SLEEP)
-    {        
+    {
         stateMachine->idle();
+        return;
+    }
+
+    if (displayManager->currentDisplayMode == DisplayMode::CALIBRATOR_SETTER)
+    {
+        openCalibratorSelector(prevCursorValue);
         return;
     }
 
@@ -295,11 +348,6 @@ void MenuController::onKnobPress()
     {
         // Set to main menu as the first menu screen
         currMenuScreen = MenuScreen::MENU_MAIN;
-    }
-    else if (displayManager->currentDisplayMode == DisplayMode::CALIBRATOR_SETTER)
-    {
-        openCalibratorSelector((Joint)cursorValue);
-        return;
     }
     else
     {
@@ -330,17 +378,9 @@ void MenuController::onKnobPress()
             currMenuScreen = selectedSubMenu.screen;
         }
     }
-
-    cursorValue = 0;
-    currSubMenus = MENU_OPTIONS[currMenuScreen];
-    subMenuLabels.clear();
-    int subMenusSize = currSubMenus.size();
-    short subMenuIndex = 0;
-
-    for (subMenuIndex = 0; subMenuIndex < subMenusSize; subMenuIndex++)
-    {
-        subMenuLabels.push_back(MENU_LABELS[currSubMenus.at(subMenuIndex).screen]);
-    }
+    
+    setCursorValue(0);
+    getSubMenuLabels();
 
     this->displayManager->showMenu(MENU_LABELS[currMenuScreen], subMenuLabels, cursorValue);
 }
@@ -394,6 +434,10 @@ void MenuController::onKnobTurn(bool clockwise)
         calibrator->setPWMPulse(selectedJoint - 1, cursorValue);
         displayManager->showCalibratorSetter(MENU_LABELS[currMenuScreen], cursorValue);
         break;
+    case DisplayMode::CONFIRMATION:
+        cursorValue = min(max(cursorValue, (uint32_t)0), (uint32_t)1);
+        displayManager->showConfirmation(MENU_LABELS[currMenuScreen], "Are you sure?", cursorValue);
+        break;
     case DisplayMode::MENU:
     default:
         cursorValue = min(cursorValue, subMenuLabels.size() - 1);
@@ -427,4 +471,23 @@ void MenuController::loop()
 void MenuController::setScreen(MenuScreen screen)
 {
     currMenuScreen = screen;
+}
+
+void MenuController::resetToDefault()
+{
+    calibrator->resetToDefault();
+    currMenuScreen = MENU_MAIN;
+    setCursorValue(0);
+    getSubMenuLabels();
+
+    //TODO: Create a function for printing text in the middle of the screen 
+    this->displayManager->getDisplay()->clearDisplay();
+    this->displayManager->getDisplay()->setCursor(HALF_SCREEN_WIDTH - TEXT_PIXELS_PER_UNIT_W * 11, HALF_SCREEN_HEIGHT - TEXT_PIXELS_PER_UNIT_H);
+    this->displayManager->getDisplay()->setTextColor(SH110X_WHITE);
+    this->displayManager->getDisplay()->println("Reset successfully!");
+    this->displayManager->getDisplay()->display();
+    
+    delay(3000);
+
+    this->displayManager->showMenu(MENU_LABELS[currMenuScreen], subMenuLabels, cursorValue);
 }

@@ -5,7 +5,8 @@
 #include "FaceAnimator.h"
 #include <Adafruit_SH110X.h>
 
-#define TEXT_PIXELS_PER_UNIT 8
+#define TEXT_PIXELS_PER_UNIT_W 5
+#define TEXT_PIXELS_PER_UNIT_H 8
 
 class DisplayManager
 {
@@ -40,6 +41,7 @@ public:
     void changeMood(FaceExpression expression);
     void showCalibratorSelector(String title, int cursor, bool blink = false);
     void showCalibratorSetter(String title, int pwm);
+    void showConfirmation(String title, String message = "Are you sure?", bool yes = false);
     void clearDisplay();
     Adafruit_SH1106G *getDisplay();
 };

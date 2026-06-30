@@ -101,8 +101,24 @@ uint16_t Calibrator::getPWMPulse(int servoIndex)
     {
         pulse = SERVOS[servoIndex + 1]->getAveragePulse();
     }
-    
+
     preferences.end();
 
     return pulse;
+}
+
+void Calibrator::resetToDefault()
+{
+    preferences.begin(CALIBRATION_NAMESPACE, false);
+
+    for (int i = 0; i < SERVO_COUNT; i++)
+    {
+        int servoIndex = i + 1;
+        SERVOS[servoIndex]->calibrate(AVG_PWM);
+        SERVOS[servoIndex]->setAngle(0);
+        
+        preferences.putUShort(std::to_string(i).c_str(), AVG_PWM);
+    }
+
+    preferences.end();
 }
